@@ -4,7 +4,7 @@ require_once '../includes/session.php';
 requireAdmin();
 
 if (isset($_GET['action']) && isset($_GET['id'])) {
-    $id = $_GET['id'];
+    $id = (int) $_GET['id'];
     if ($_GET['action'] == 'view') {
         $sql = "SELECT s.*, c.nama_kategori, u.nama_lengkap as creator FROM sop s LEFT JOIN categories c ON s.kategori_id = c.id LEFT JOIN users u ON s.created_by = u.id WHERE s.id = $id";
         $result = mysqli_query($conn, $sql); $row = mysqli_fetch_assoc($result);

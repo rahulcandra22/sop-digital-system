@@ -27,6 +27,13 @@ function requireAdmin() {
     }
 }
 
+function requireUser() {
+    if (!isset($_SESSION['role']) || $_SESSION['role'] != 'user') {
+        header("Location: ../admin/dashboard.php");
+        exit();
+    }
+}
+
 function getUserId() {
     return $_SESSION['user_id'] ?? null;
 }

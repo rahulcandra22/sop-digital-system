@@ -6,10 +6,20 @@ requireAdmin();
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'add') {
-            $judul = mysqli_real_escape_string($conn, $_POST['judul']);
-            $kategori_id = $_POST['kategori_id'];
-            $deskripsi = mysqli_real_escape_string($conn, $_POST['deskripsi']);
-            $langkah_kerja = mysqli_real_escape_string($conn, $_POST['langkah_kerja']);
+    $judul = trim($_POST['judul']);
+    $kategori_id = (int) $_POST['kategori_id'];
+    $deskripsi = trim($_POST['deskripsi']);
+    $langkah_kerja = trim($_POST['langkah_kerja']);
+
+        if (empty($judul) || empty($langkah_kerja) || $kategori_id == 0) {
+    setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
+    header('Location: sop.php');
+    exit();
+}
+    $judul = mysqli_real_escape_string($conn, $judul);
+    $deskripsi = mysqli_real_escape_string($conn, $deskripsi);
+    $langkah_kerja = mysqli_real_escape_string($conn, $langkah_kerja);
+
             $created_by = getUserId();
             $file_attachment = '';
             if (isset($_FILES['file_attachment']) && $_FILES['file_attachment']['error'] == 0) {
@@ -21,7 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (mysqli_query($conn, $sql)) { setFlashMessage('success', 'SOP berhasil ditambahkan!'); } else { setFlashMessage('danger', 'Gagal menambahkan SOP!'); }
             header('Location: sop.php'); exit();
         } elseif ($_POST['action'] == 'edit') {
-            $id = $_POST['id']; $judul = mysqli_real_escape_string($conn, $_POST['judul']); $kategori_id = $_POST['kategori_id'];
+        $id = (int) $_POST['id'];
+        $judul = trim($_POST['judul']);
+        $kategori_id = (int) $_POST['kategori_id'];
+        $deskripsi = trim($_POST['deskripsi']);
+        $langkah_kerja = trim($_POST['langkah_kerja']);
+
+    if (empty($judul) || empty($langkah_kerja) || $kategori_id == 0) {
+setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
+header('Location: sop.php');
+exit();
+}
+
+$judul = mysqli_real_escape_string($conn, $judul);
+$deskripsi = mysqli_real_escape_string($conn, $deskripsi);
+$langkah_kerja = mysqli_real_escape_string($conn, $langkah_kerja);
+
             $deskripsi = mysqli_real_escape_string($conn, $_POST['deskripsi']); $langkah_kerja = mysqli_real_escape_string($conn, $_POST['langkah_kerja']);
             $file_update = '';
             if (isset($_FILES['file_attachment']) && $_FILES['file_attachment']['error'] == 0) {
@@ -40,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete']; $sql_file = "SELECT file_attachment FROM sop WHERE id=$id"; $result_file = mysqli_query($conn, $sql_file);
+    $id = (int) $_GET['delete']; $sql_file = "SELECT file_attachment FROM sop WHERE id=$id"; $result_file = mysqli_query($conn, $sql_file);
     if ($row_file = mysqli_fetch_assoc($result_file)) { if ($row_file['file_attachment'] && file_exists("../assets/uploads/" . $row_file['file_attachment'])) { unlink("../assets/uploads/" . $row_file['file_attachment']); } }
     $sql = "DELETE FROM sop WHERE id=$id"; if (mysqli_query($conn, $sql)) { setFlashMessage('success', 'SOP berhasil dihapus!'); } else { setFlashMessage('danger', 'Gagal menghapus SOP!'); }
     header('Location: sop.php'); exit();

@@ -40,17 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SOP Digital System</title>
-    <!-- Import Font Keren: Outfit -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CORE SETUP --- */
         :root {
-            --primary-glow: #3b82f6; /* Electric Blue */
-            --secondary-glow: #8b5cf6; /* Violet */
+            --primary-glow: #3b82f6;
+            --secondary-glow: #8b5cf6;
+            --accent-orange: #f97316;
             --bg-dark: #0f172a;
-            --glass-bg: rgba(15, 23, 42, 0.7); /* Sedikit lebih solid */
+            --glass-bg: rgba(15, 23, 42, 0.7); /* Sedikit lebih solid agar jelas */
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -70,14 +69,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin: 0;
         }
 
-        /* --- BACKGROUND ANIMATION --- */
+        /* --- BACKGROUND --- */
         .ambient-light {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             overflow: hidden;
             background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
-                        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+                        radial-gradient(circle at 85% 30%, rgba(249, 115, 22, 0.08), transparent 25%);
         }
 
         .orb {
@@ -88,14 +87,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             animation: moveOrb 20s infinite alternate;
         }
         .orb-1 { width: 400px; height: 400px; background: var(--primary-glow); top: -100px; left: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: var(--secondary-glow); bottom: -150px; right: -150px; animation-delay: -5s; }
+        .orb-2 { width: 500px; height: 500px; background: var(--accent-orange); bottom: -150px; right: -150px; animation-delay: -5s; }
 
         @keyframes moveOrb {
             0% { transform: translate(0, 0); }
             100% { transform: translate(50px, 30px); }
         }
 
-        /* Grid Pattern Overlay */
         .grid-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -106,10 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
         }
 
-        /* --- LOGIN CONTAINER --- */
+        /* --- CONTAINER (UKURAN DIKECILKAN) --- */
         .login-container {
             width: 100%;
-            padding: 20px; /* Padding container luar */
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -124,23 +122,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border-radius: 24px !important;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(59, 130, 246, 0.1) !important;
             
-            max-width: 1000px !important;
+            /* UKURAN BARU: Lebih Kompak */
+            max-width: 850px !important; 
             width: 100% !important;
+            
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
             overflow: hidden;
-            animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: cardEntrance 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         @keyframes cardEntrance {
-            from { opacity: 0; transform: scale(0.95) translateY(30px); }
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         /* --- LEFT SIDE (BRANDING) --- */
         .login-left {
-            background: linear-gradient(160deg, rgba(30, 58, 138, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%) !important;
-            padding: 60px 40px !important;
+            background: linear-gradient(160deg, rgba(30, 58, 138, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%) !important;
+            /* Padding Diperkecil */
+            padding: 40px 30px !important; 
+            
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important;
@@ -152,49 +154,67 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .login-logo {
-            width: 100px; /* Diperkecil sedikit agar proporsional */
+            width: 70px; /* Logo lebih kecil */
             height: auto;
-            margin-bottom: 30px !important;
+            margin-bottom: 20px !important;
             filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
             animation: floatLogo 6s ease-in-out infinite;
+            position: relative;
+            z-index: 5;
         }
 
         @keyframes floatLogo {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
         }
 
         .login-title {
-            font-size: 30px !important;
-            font-weight: 700 !important;
-            margin-bottom: 20px !important;
-            line-height: 1.3 !important;
-            background: linear-gradient(to right, #fff, #93c5fd);
+            font-size: 26px !important; /* Font judul disesuaikan agar pas */
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            margin-bottom: 15px !important;
+            line-height: 1.2 !important;
+            background: linear-gradient(135deg, #ffffff 0%, #60a5fa 50%, #3b82f6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+            position: relative;
+            z-index: 5;
         }
 
         .login-subtitle {
-            font-size: 14px !important;
+            font-size: 13px !important;
             color: var(--text-muted) !important;
-            line-height: 1.7 !important; /* Line height diperbesar agar nyaman dibaca */
-            margin-bottom: 40px !important;
+            line-height: 1.6 !important;
+            margin-bottom: 25px !important;
             font-weight: 300;
+            max-width: 300px; /* Lebar teks dibatasi biar rapi */
+            position: relative;
+            z-index: 5;
         }
 
-        .login-illustration {
-            width: 100% !important;
-            max-width: 300px !important;
-            filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.4));
-            transition: transform 0.5s ease;
+        /* --- STYLE SVG (DISESUAIKAN UKURANNYA) --- */
+        .custom-illustration {
+            width: 100%;
+            /* Batasi tinggi agar tidak mendorong kotak menjadi besar */
+            max-height: 220px; 
+            height: auto;
+            opacity: 0.95;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.2));
+            transition: all 0.5s ease;
         }
-        .login-left:hover .login-illustration {
-            transform: scale(1.02);
+
+        .login-left:hover .custom-illustration {
+            transform: translateY(-10px) scale(1.02);
+            opacity: 1;
+            filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.4));
         }
 
         /* --- RIGHT SIDE (FORM) --- */
         .login-right {
-            padding: 60px 50px !important; /* Padding form diperbesar agar lega */
+            /* Padding diperkecil biar pas */
+            padding: 40px 35px !important; 
             background: transparent !important;
             display: flex;
             flex-direction: column;
@@ -202,37 +222,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .form-header {
-            margin-bottom: 35px !important; /* Jarak header ke form */
+            margin-bottom: 25px !important;
         }
 
         .form-header h2 {
             color: white !important;
-            font-size: 28px !important;
-            margin-bottom: 10px !important; /* Jarak judul ke subjudul */
+            font-size: 24px !important; /* Judul lebih kecil */
+            margin-bottom: 8px !important;
             font-weight: 600;
             letter-spacing: -0.5px;
         }
         .form-header p {
             color: var(--text-muted) !important;
-            font-size: 15px !important; /* Font size diperbesar sedikit */
+            font-size: 14px !important;
             margin: 0 !important;
         }
 
-        /* Form Group & Input Spacing */
         .form-group {
-            margin-bottom: 35px !important; /* Jarak antar field input diperjauh */
+            margin-bottom: 22px !important; /* Jarak input dipersempit */
             position: relative;
         }
 
         .form-group label {
             color: #e2e8f0 !important;
-            font-size: 13px !important;
-            font-weight: 600 !important; /* Lebih tebal agar jelas */
+            font-size: 12px !important; /* Label sedikit lebih kecil */
+            font-weight: 600 !important;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: 12px !important;
+            letter-spacing: 1px;
+            margin-bottom: 8px !important;
             display: block;
-            margin-left: 5px; /* Sedikit indentasi label */
+            margin-left: 5px;
         }
 
         .input-group {
@@ -242,26 +261,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .input-group i {
             position: absolute;
-            left: 18px;
+            left: 16px;
             top: 50%;
             transform: translateY(-50%);
             color: #64748b;
-            font-size: 18px;
+            font-size: 16px;
             transition: 0.3s;
             z-index: 2;
         }
 
         .form-control {
             width: 100%;
-            padding: 16px 16px 16px 50px !important; /* Padding dalam input */
+            padding: 14px 14px 14px 45px !important; /* Padding input disesuaikan */
             background: var(--input-bg) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
             border-radius: 12px !important;
             color: white !important;
-            font-size: 15px !important;
+            font-size: 14px !important;
             transition: all 0.3s ease !important;
             font-family: 'Outfit', sans-serif !important;
-            box-sizing: border-box; /* Penting agar padding tidak merusak lebar */
+            box-sizing: border-box;
         }
 
         .form-control::placeholder {
@@ -273,29 +292,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             outline: none !important;
             border-color: var(--primary-glow) !important;
             background: rgba(0, 0, 0, 0.6) !important;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important; /* Focus ring halus */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
 
         .form-control:focus + i {
             color: var(--primary-glow);
-            transform: translateY(-50%) scale(1.1); /* Ikon sedikit membesar saat focus */
+            transform: translateY(-50%) scale(1.1);
         }
 
-        /* --- HINT BOX (Saran Login) --- */
         .input-hint {
-            display: none; /* Hidden default */
-            margin-top: 10px;
-            padding: 10px 14px;
+            display: none;
+            margin-top: 8px;
+            padding: 8px 12px;
             background: rgba(59, 130, 246, 0.1);
             border-left: 3px solid var(--primary-glow);
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 11px;
             color: #bfdbfe;
             animation: fadeInHint 0.3s ease forwards;
         }
 
         .input-hint i {
-            margin-right: 6px;
+            margin-right: 5px;
             color: var(--primary-glow);
         }
 
@@ -303,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: white;
             font-weight: 600;
             background: rgba(255,255,255,0.1);
-            padding: 2px 6px;
+            padding: 1px 5px;
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.2s;
@@ -318,37 +336,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Button */
         .btn-primary {
             width: 100% !important;
-            padding: 16px !important;
+            padding: 14px !important; /* Tombol sedikit lebih pendek */
             background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important;
             color: white !important;
             border: none !important;
             border-radius: 12px !important;
-            font-size: 16px !important;
+            font-size: 15px !important;
             font-weight: 600 !important;
             cursor: pointer !important;
             transition: all 0.3s ease !important;
             letter-spacing: 0.5px;
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
-            margin-top: 10px !important;
+            margin-top: 5px !important;
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
         }
 
-        /* Alert Boxes */
         .alert {
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 30px !important;
-            font-size: 14px;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 20px !important;
+            font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             backdrop-filter: blur(10px);
             animation: slideDown 0.4s ease;
         }
@@ -370,29 +386,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .demo-info {
-            margin-top: 40px;
-            padding-top: 25px;
+            margin-top: 25px;
+            padding-top: 20px;
             border-top: 1px solid rgba(255,255,255,0.1);
             text-align: center;
             color: #64748b;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         /* Mobile Responsive */
-        @media (max-width: 900px) {
+        @media (max-width: 850px) {
             .login-box {
                 grid-template-columns: 1fr !important;
-                max-width: 500px !important;
-                margin: 20px;
+                max-width: 450px !important;
+                margin: 15px;
             }
             .login-left { display: none !important; }
-            .login-right { padding: 40px 30px !important; }
+            .login-right { padding: 30px 25px !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Background Elements -->
     <div class="grid-overlay"></div>
     <div class="ambient-light">
         <div class="orb orb-1"></div>
@@ -401,37 +416,71 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="login-container">
         <div class="login-box">
-            <!-- Left Side -->
             <div class="login-left">
                 <img src="assets/images/logo.png" alt="Logo" class="login-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2991/2991148.png'">
                 
                 <h1 class="login-title">SINERGI<br>NUSANTARA<br>INTEGRASI</h1>
                 <p class="login-subtitle">
-                    PT. Sinergi Nusantara Integrasi adalah perusahaan dengan solusi teknologi kelas
-                    dunia yang memberikan berbagai solusi inovatif berdasarkan teknologi yang terintegrasi berdasarkan
-                    pada produk perangkat lunak dengan kinerja terbaik bagi dunia usaha.
+                    Platform digital yang terintegrasi untuk solusi bisnis di masa depan.
                 </p>
                 
-                <svg class="login-illustration" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- SVG Custom Kompak -->
+                <svg class="custom-illustration" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        <linearGradient id="grad-body" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
                         </linearGradient>
+                        <linearGradient id="grad-screen" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1e293b;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="4" result="blur"/>
+                            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                        </filter>
                     </defs>
-                    <rect x="100" y="80" width="300" height="240" rx="20" fill="rgba(255,255,255,0.05)" stroke="url(#grad1)" stroke-width="2"/>
-                    <circle cx="250" cy="200" r="60" fill="rgba(59, 130, 246, 0.2)" />
-                    <path d="M250 150 L280 180 L250 230 L220 180 Z" fill="#3b82f6" opacity="0.8"/>
-                    <line x1="250" y1="150" x2="250" y2="100" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5,5"/>
-                    <line x1="280" y1="180" x2="380" y2="180" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,5"/>
-                    <line x1="220" y1="180" x2="120" y2="180" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,5"/>
-                    <circle cx="120" cy="180" r="5" fill="#fff"/>
-                    <circle cx="380" cy="180" r="5" fill="#fff"/>
-                    <circle cx="250" cy="100" r="5" fill="#fff"/>
+
+                    <g>
+                        <animateTransform attributeName="transform" type="translate" values="0 0; 0 -8; 0 0" dur="4s" repeatCount="indefinite" />
+
+                        <!-- Laptop Base -->
+                        <path d="M40 260 L200 320 L360 260 L200 200 Z" fill="rgba(255,255,255,0.05)" stroke="url(#grad-body)" stroke-width="2" />
+                        <!-- Laptop Screen Back -->
+                        <path d="M70 100 L70 260 L330 260 L330 100 Z" fill="rgba(15, 23, 42, 0.4)" stroke="url(#grad-body)" stroke-width="2" />
+                        <!-- Screen Content -->
+                        <rect x="85" y="120" width="230" height="120" rx="4" fill="url(#grad-screen)" stroke="rgba(255,255,255,0.1)" />
+                        
+                        <!-- Code Lines -->
+                        <rect x="100" y="140" width="80" height="6" rx="3" fill="#3b82f6" opacity="0.6" />
+                        <rect x="100" y="155" width="120" height="6" rx="3" fill="#64748b" opacity="0.5" />
+                        <rect x="100" y="170" width="100" height="6" rx="3" fill="#64748b" opacity="0.5" />
+                        <rect x="100" y="185" width="60" height="6" rx="3" fill="#64748b" opacity="0.5" />
+
+                        <!-- Shield Icon -->
+                        <g transform="translate(180, 140)">
+                            <path d="M0 0 L20 -5 L40 0 V15 C40 25 20 40 20 40 C20 40 0 25 0 15 Z" fill="url(#grad-body)" filter="url(#glow)" opacity="0.9">
+                                <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
+                            </path>
+                            <path d="M12 15 L18 22 L28 10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                        
+                        <!-- Floating Particles -->
+                        <circle cx="100" cy="80" r="3" fill="#3b82f6" opacity="0.8">
+                            <animate attributeName="cy" values="80;70;80" dur="2s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                        <circle cx="300" cy="150" r="2" fill="#8b5cf6" opacity="0.8">
+                            <animate attributeName="cy" values="150;130;150" dur="2.5s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" />
+                        </circle>
+                         <circle cx="280" cy="90" r="4" fill="#3b82f6" opacity="0.6">
+                            <animate attributeName="cx" values="280;290;280" dur="4s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
                 </svg>
             </div>
             
-            <!-- Right Side -->
             <div class="login-right">
                 <div class="form-header">
                     <h2>Selamat Datang!</h2>
@@ -451,7 +500,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
                 
                 <form method="POST" action="">
-                    <!-- Username Input -->
                     <div class="form-group">
                         <label for="username">Username</label>
                         <div class="input-group">
@@ -459,13 +507,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <input type="text" id="username" name="username" class="form-control" 
                                    placeholder="Masukkan username Anda" required autocomplete="off">
                         </div>
-                        <!-- Saran Login (Hint) -->
                         <div class="input-hint" id="hint-username">
-                            <i class="fas fa-lightbulb"></i> Saran login: Coba username <strong>admin</strong> atau <strong>user</strong>
+                            <i class="fas fa-lightbulb"></i> Saran: <strong>admin</strong> atau <strong>user</strong>
                         </div>
                     </div>
                     
-                    <!-- Password Input -->
                     <div class="form-group">
                         <label for="password">Password</label>
                         <div class="input-group">
@@ -473,9 +519,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <input type="password" id="password" name="password" class="form-control" 
                                    placeholder="Masukkan password Anda" required>
                         </div>
-                        <!-- Saran Login (Hint) -->
                         <div class="input-hint" id="hint-password">
-                            <i class="fas fa-lightbulb"></i> Saran password: Coba <strong>123456</strong>
+                            <i class="fas fa-lightbulb"></i> Saran: <strong>123456</strong>
                         </div>
                     </div>
                     
@@ -491,7 +536,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
-    <!-- Script untuk Interaksi Saran Login -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const usernameInput = document.getElementById('username');
@@ -499,7 +543,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const usernameHint = document.getElementById('hint-username');
             const passwordHint = document.getElementById('hint-password');
 
-            // Fungsi untuk menampilkan hint dengan animasi
             function showHint(hintElement) {
                 hintElement.style.display = 'block';
                 setTimeout(() => {
@@ -507,25 +550,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }, 10);
             }
 
-            // Fungsi untuk menyembunyikan hint
             function hideHint(hintElement) {
                 hintElement.style.opacity = '0';
                 setTimeout(() => {
                     hintElement.style.display = 'none';
-                }, 300); // Tunggu transisi opacity selesai
+                }, 300);
             }
 
-            // Event Listener untuk Username
             usernameInput.addEventListener('focus', function() {
                 showHint(usernameHint);
             });
 
             usernameInput.addEventListener('blur', function() {
-                // Sembunyikan jika user meninggalkan input
                 hideHint(usernameHint);
             });
 
-            // Event Listener untuk Password
             passwordInput.addEventListener('focus', function() {
                 showHint(passwordHint);
             });
@@ -534,14 +573,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 hideHint(passwordHint);
             });
             
-            // Fitur Tambahan: Klik pada saran teks (strong) akan mengisi otomatis
             document.querySelectorAll('.input-hint strong').forEach(item => {
                 item.addEventListener('click', function(e) {
-                    // Mencegah event bubbling agar input tidak keblur langsung jika diperlukan
                     e.stopPropagation(); 
                     const suggestion = this.innerText;
                     
-                    // Cek elemen mana yang diklik (berdasarkan parent ID)
                     if (this.parentElement.id === 'hint-username') {
                         usernameInput.value = suggestion;
                     } else if (this.parentElement.id === 'hint-password') {

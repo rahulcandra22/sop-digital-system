@@ -4,22 +4,104 @@ require_once '../includes/session.php';
 requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
     if (isset($_POST['action'])) {
+
+        // ================= TAMBAH =================
         if ($_POST['action'] == 'add') {
-            $nama = mysqli_real_escape_string($conn, $_POST['nama_kategori']);
-            $deskripsi = mysqli_real_escape_string($conn, $_POST['deskripsi']);
-            $sql = "INSERT INTO categories (nama_kategori, deskripsi) VALUES ('$nama', '$deskripsi')";
-            if (mysqli_query($conn, $sql)) { setFlashMessage('success', 'Kategori berhasil ditambahkan!'); } else { setFlashMessage('danger', 'Gagal menambahkan kategori!'); }
-            header('Location: kategori.php'); exit();
-        } elseif ($_POST['action'] == 'edit') {
-            $id = $_POST['id']; $nama = mysqli_real_escape_string($conn, $_POST['nama_kategori']);
-            $deskripsi = mysqli_real_escape_string($conn, $_POST['deskripsi']);
-            $sql = "UPDATE categories SET nama_kategori='$nama', deskripsi='$deskripsi' WHERE id=$id";
-            if (mysqli_query($conn, $sql)) { setFlashMessage('success', 'Kategori berhasil diupdate!'); } else { setFlashMessage('danger', 'Gagal mengupdate kategori!'); }
-            header('Location: kategori.php'); exit();
+
+            $nama = trim($_POST['nama_kategori']);
+            $deskripsi = trim($_POST['deskripsi']);
+            
+$cek = mysqli_query($conn, "SELECT id FROM categories WHERE nama_kategori='$nama'");
+if (mysqli_num_rows($cek) > 0) {
+    setFlashMessage('danger', 'Nama kategori sudah ada!');
+    header('Location: kategori.php');
+    exit();
+}
+
+            if (empty($nama)) {
+                setFlashMessage('danger', 'Nama kategori wajib diisi!');
+                header('Location: kategori.php');
+                exit();
+            }
+
+            $nama = mysqli_real_escape_string($conn, $nama);
+            $deskripsi = mysqli_real_escape_string($conn, $deskripsi);
+
+            $sql = "INSERT INTO categories (nama_kategori, deskripsi) 
+                    VALUES ('$nama', '$deskripsi')";
+
+            if (mysqli_query($conn, $sql)) {
+                setFlashMessage('success', 'Kategori berhasil ditambahkan!');
+            } else {
+                setFlashMessage('danger', 'Gagal menambahkan kategori!');
+            }
+
+            header('Location: kategori.php');
+            exit();
+        }
+
+        // ================= EDIT =================
+        elseif ($_POST['action'] == 'edit') {
+
+            $id = (int) $_POST['id'];
+            $nama = trim($_POST['nama_kategori']);
+            $deskripsi = trim($_POST['deskripsi']);
+
+            if (empty($nama)) {
+                setFlashMessage('danger', 'Nama kategori wajib diisi!');
+                header('Location: kategori.php');
+                exit();
+            }
+
+            $nama = mysqli_real_escape_string($conn, $nama);
+            $deskripsi = mysqli_real_escape_string($conn, $deskripsi);
+
+            $sql = "UPDATE categories 
+                    SET nama_kategori='$nama', deskripsi='$deskripsi' 
+                    WHERE id=$id";
+
+            if (mysqli_query($conn, $sql)) {
+                setFlashMessage('success', 'Kategori berhasil diupdate!');
+            } else {
+                setFlashMessage('danger', 'Gagal mengupdate kategori!');
+            }
+
+            header('Location: kategori.php');
+            exit();
         }
     }
 }
+
+// ================= DELETE =================
+if (isset($_GET['delete'])) {
+
+    $id = (int) $_GET['delete'];
+
+    // CEK apakah kategori masih dipakai di tabel sop
+    $cek = mysqli_query($conn, "SELECT COUNT(*) as total FROM sop WHERE kategori_id=$id");
+    $data = mysqli_fetch_assoc($cek);
+
+    if ($data['total'] > 0) {
+        setFlashMessage('danger', 'Kategori tidak bisa dihapus karena masih digunakan oleh SOP!');
+        header('Location: kategori.php');
+        exit();
+    }
+
+    // Kalau tidak dipakai, baru hapus
+    $sql = "DELETE FROM categories WHERE id=$id";
+
+    if (mysqli_query($conn, $sql)) {
+        setFlashMessage('success', 'Kategori berhasil dihapus!');
+    } else {
+        setFlashMessage('danger', 'Gagal menghapus kategori!');
+    }
+
+    header('Location: kategori.php');
+    exit();
+}
+
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
     $sql = "DELETE FROM categories WHERE id=$id";
