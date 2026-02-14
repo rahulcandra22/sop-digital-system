@@ -117,7 +117,7 @@ if (isset($_GET['delete'])) {
         .btn-logout { padding: 8px 20px; background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; text-decoration: none; }
 
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
-        .modal-content { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); margin: 3% auto; border-radius: 16px; width: 90%; max-width: 900px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); color: #fff; }
+        .modal-content { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; width: 90%; max-width: 900px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); color: #fff; }
         .modal-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { color: #fff; margin: 0; }
         .close { color: #94a3b8; font-size: 28px; cursor: pointer; }
