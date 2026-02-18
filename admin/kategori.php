@@ -203,7 +203,7 @@ if (isset($_GET['delete'])) {
                                     <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>, 'kategori')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
                                 </td></tr>
                                 <?php endwhile; ?>
-                                <?php if(mysqli_num_rows($result)==0): ?><tr><td colspan="5" style="text-align:center;padding:20px;">Belum ada kategori</td></tr><?php endif; ?>
+                                <?php if(mysqli_num_rows($result)==0): ?><tr><td colspan="6" style="text-align:center;padding:20px;">Belum ada kategori</td></tr><?php endif; ?>
                             </tbody>
                         </table></div>
                     </div>

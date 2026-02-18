@@ -18,7 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nama_lengkap = mysqli_real_escape_string($conn, $_POST['nama_lengkap']); $role = $_POST['role'];
             $password_update = '';
             if (!empty($_POST['password'])) { $password = password_hash($_POST['password'], PASSWORD_DEFAULT); $password_update = ", password='$password'"; }
-            $sql = "UPDATE users SET username='$username', nama_lengkap='$nama_lengkap', role='$role' $password_update WHERE id=$id";
+            
+            $sql = "UPDATE users 
+        SET username='$username', 
+            nama_lengkap='$nama_lengkap', 
+            role='$role' 
+            $password_update 
+        WHERE id=$id";
+
             if (mysqli_query($conn, $sql)) { setFlashMessage('success', 'User berhasil diupdate!'); } else { setFlashMessage('danger', 'Gagal mengupdate user!'); }
             header('Location: users.php'); exit();
         }

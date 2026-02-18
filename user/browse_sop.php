@@ -6,15 +6,19 @@ requireUser();
  $kategori_filter = isset($_GET['kategori']) ? $_GET['kategori'] : '';
  $search = isset($_GET['search']) ? $_GET['search'] : '';
 
- $where = "WHERE 1=1";
-if ($kategori_filter) { $where .= " AND s.kategori_id = " . intval($kategori_filter); }
+ $where = "WHERE s.status = 'Disetujui'";
+
+if ($kategori_filter) { 
+    $where .= " AND s.kategori_id = " . intval($kategori_filter); 
+}
+
 if ($search) {
     $search_safe = mysqli_real_escape_string($conn, $search);
     $where .= " AND (
-    s.judul LIKE '%$search_safe%' 
-    OR s.deskripsi LIKE '%$search_safe%'
-    OR c.nama_kategori LIKE '%$search_safe%'
-)";
+        s.judul LIKE '%$search_safe%' 
+        OR s.deskripsi LIKE '%$search_safe%'
+        OR c.nama_kategori LIKE '%$search_safe%'
+    )";
 }
 
  $sql = "SELECT s.*, c.nama_kategori FROM sop s LEFT JOIN categories c ON s.kategori_id = c.id $where ORDER BY s.created_at DESC";

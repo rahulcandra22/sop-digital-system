@@ -21,8 +21,10 @@ requireAdmin();
  $sql_recent = "SELECT s.*, c.nama_kategori FROM sop s 
                LEFT JOIN categories c ON s.kategori_id = c.id 
                ORDER BY s.created_at DESC LIMIT 5";
- $result_recent = mysqli_query($conn, $sql_recent);
-
+$result_recent = mysqli_query($conn, $sql_recent);
+if (!$result_recent) {
+    die("Query error: " . mysqli_error($conn));
+}
  $flash = getFlashMessage();
 ?>
 <!DOCTYPE html>
@@ -126,6 +128,28 @@ requireAdmin();
         .grid-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         .grid-buttons a { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; text-decoration: none; border-radius: 12px; color: white; font-weight: 600; transition: 0.3s; }
         .grid-buttons a:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+        /* Status */
+.status-draft {
+    background: rgba(71, 85, 105, 0.3);
+    color: #94a3b8;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+}
+.status-review {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.status-approved {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.status-revisi {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
     </style>
 </head>
 <body>
@@ -190,42 +214,66 @@ requireAdmin();
                 
                 <!-- Recent SOPs -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-history"></i> SOP Terbaru</h3>
-                        <a href="sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Lihat Semua</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table>
-                                <thead><tr><th>No</th><th>Judul SOP</th><th>Kategori</th><th>Tanggal</th><th>Aksi</th></tr></thead>
-                                <tbody>
-                                    <?php $no = 1; while ($row = mysqli_fetch_assoc($result_recent)): ?>
-                                    <tr>
-                                        <td><?php echo $no++; ?></td>
-                                        <td><?php echo htmlspecialchars($row['judul']); ?></td>
-                                        <td><span class="badge"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td>
-                                        <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
-                                        <td><a href="sop.php?view=<?php echo $row['id']; ?>" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a></td>
-                                    </tr>
-                                    <?php endwhile; ?>
-                                    <?php if (mysqli_num_rows($result_recent) == 0): ?><tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr><?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="card-header">
+                <h3><i class="fas fa-history"></i> SOP Terbaru</h3>
+                    <a href="sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Lihat Semua</a>
                 </div>
+            <div class="card-body">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Judul SOP</th>
+                        <th>Kategori</th>
+                        <th>Status</th>
+                        <th>Tanggal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php
+                $res = mysqli_query($conn, "SELECT s.*, c.nama_kategori FROM sop s LEFT JOIN categories c ON s.kategori_id = c.id ORDER BY s.created_at DESC LIMIT 5");
+                $no = 1;
+                if (mysqli_num_rows($res) > 0):
+                    while ($row = mysqli_fetch_assoc($res)):
+                ?>
+                <tr>
+                    <td><?php echo $no++; ?></td>
+                    <td><?php echo htmlspecialchars($row['judul']); ?></td>
+                    <td><span class="badge"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td>
+                    <td><?php
+                        $s = trim($row['status']);
+                        switch($s) {
+                            case 'Draft':     echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(71,85,105,0.5);color:#cbd5e1;border:1px solid #475569">Draft</span>'; break;
+                            case 'Review':    echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(245,158,11,0.3);color:#fbbf24;border:1px solid #d97706">Review</span>'; break;
+                            case 'Disetujui': echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(16,185,129,0.3);color:#34d399;border:1px solid #059669">Disetujui</span>'; break;
+                            default:          echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(239,68,68,0.3);color:#f87171;border:1px solid #dc2626">'.$s.'</span>';
+                        }
+                    ?></td>
+                    <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
+                    <td><a href="sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a></td>
+                </tr>
+                <?php endwhile; else: ?>
+                <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">Belum ada data</td></tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
                 
                 <!-- Quick Actions -->
-                <div class="card">
-                    <div class="card-header"><h3><i class="fas fa-bolt"></i> Quick Actions</h3></div>
-                    <div class="card-body">
-                        <div class="grid-buttons">
-                            <a href="sop.php?action=add" class="btn-success"><i class="fas fa-plus"></i> Tambah SOP</a>
-                            <a href="kategori.php?action=add" class="btn-info"><i class="fas fa-folder-plus"></i> Tambah Kategori</a>
-                            <a href="users.php?action=add" class="btn-warning"><i class="fas fa-user-plus"></i> Tambah User</a>
-                        </div>
-                    </div>
-                </div>
+<div class="card">
+    <div class="card-header"><h3><i class="fas fa-bolt"></i> Quick Actions</h3></div>
+    <div class="card-body">
+        <div class="grid-buttons">
+            <a href="sop.php" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-plus"></i> Tambah SOP</a>
+            <a href="kategori.php" style="background:linear-gradient(135deg,#3b82f6,#2563eb)"><i class="fas fa-folder-plus"></i> Tambah Kategori</a>
+            <a href="users.php" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-user-plus"></i> Tambah User</a>
+        </div>
+            </div>
+            </div>
             </div>
         </main>
     </div>

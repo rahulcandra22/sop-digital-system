@@ -153,7 +153,7 @@ requireLogin();
                     <div class="card-body">
                         <div class="table-responsive">
                             <table>
-                                <thead><tr><th>No</th><th>Judul SOP</th><th>Kategori</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+                                <thead><tr><th>No</th><th>Judul SOP</th><th>Kategori</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr></thead>
                                 <tbody>
                                     <?php $no = 1; while ($row = mysqli_fetch_assoc($result_recent)): ?>
                                     <tr>

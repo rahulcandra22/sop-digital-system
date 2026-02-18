@@ -427,6 +427,7 @@ body {
 
 .card {
     background: white;
+    backdrop-filter: blur(8px);
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     overflow: hidden;
@@ -500,7 +501,8 @@ body {
 /* Table Base */
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background: #1e293b;
     border-radius: 12px;
     overflow: hidden;
@@ -525,6 +527,11 @@ table td {
     color: #e2e8f0;
 }
 
+table th,
+table td {
+    vertical-align: middle;
+}
+
 /* Alternating row */
 table tbody tr:nth-child(even) {
     background: rgba(255,255,255,0.02);
@@ -538,14 +545,40 @@ table tbody tr {
 table tbody tr:hover {
     background: linear-gradient(
         90deg,
-        rgba(59,130,246,0.15),
-        rgba(99,102,241,0.15)
+        rgba(59,130,246,0.12),
+        rgba(99,102,241,0.12)
     );
-    transform: scale(1.01);
 }
 
 table tbody tr:hover td {
     color: #ffffff;
+}
+
+.status-draft {
+    background: #475569;
+    color: white;
+}
+
+.status-review {
+    background: #f59e0b;
+    color: #1e293b;
+}
+
+.status-approved {
+    background: #10b981;
+    color: white;
+}
+
+.status-revisi {
+    background: #ef4444;
+    color: white;
+}
+
+/* ===== Kolom Lebar Stabil ===== */
+table th:nth-child(1),
+table td:nth-child(1) {
+    width: 60px;
+    text-align: center;
 }
 
 .badge {
@@ -657,7 +690,6 @@ table tbody tr:hover td {
     z-index: 9999;
     background: rgba(0,0,0,0.7);
 
-    display: flex;
     align-items: center;
     justify-content: center;
 

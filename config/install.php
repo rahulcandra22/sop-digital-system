@@ -117,9 +117,9 @@ foreach ($categories as $cat) {
 echo "Sample categories created successfully<br>";
 
 // Insert sample SOP
-$sql = "INSERT INTO sop (judul, kategori_id, deskripsi, langkah_kerja, created_by) VALUES 
+$sql = "INSERT INTO sop (judul, kategori_id, deskripsi, langkah_kerja, created_by, status) VALUES 
         ('Prosedur Instalasi Software', 1, 'Panduan lengkap untuk instalasi software di perusahaan', 
-        '1. Pastikan komputer memenuhi spesifikasi minimum\n2. Download software dari sumber resmi\n3. Jalankan installer\n4. Ikuti wizard instalasi\n5. Restart komputer jika diperlukan\n6. Verifikasi instalasi berhasil', 1)
+        '1. Pastikan komputer memenuhi spesifikasi minimum\n2. Download software dari sumber resmi\n3. Jalankan installer\n4. Ikuti wizard instalasi\n5. Restart komputer jika diperlukan\n6. Verifikasi instalasi berhasil', 1, 'Disetujui')
         ON DUPLICATE KEY UPDATE judul=judul";
 
 if (mysqli_query($conn, $sql)) {

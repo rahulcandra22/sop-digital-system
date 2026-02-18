@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .login-title {
-            font-size: 26px !important; /* Font judul disesuaikan agar pas */
+            font-size: 26px !important;
             font-weight: 800 !important;
             text-transform: uppercase !important;
             letter-spacing: 1px !important;
