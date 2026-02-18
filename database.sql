@@ -56,11 +56,11 @@ CREATE TABLE `sop` (
 -- ============================================
 -- Default Data: Users
 -- ============================================
--- Password Admin: SINERGIJAYA
--- Password User: rahul123
+-- Password Admin: sinergi
+-- Password User: rahul
 INSERT INTO `users` (`id`, `username`, `password`, `role`, `nama_lengkap`, `created_at`) VALUES
 (1, 'sinergi@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Administrator', CURRENT_TIMESTAMP),
-(2, 'rahulcandra', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Rahul Candra Kirana', CURRENT_TIMESTAMP);
+(2, 'rahulcandra@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Rahul Candra', CURRENT_TIMESTAMP);
 
 -- ============================================
 -- Sample Data: Categories
