@@ -1,7 +1,7 @@
 -- ============================================
 -- DATABASE: sop_digital_db
 -- Sistem SOP Digital - PT. Sinergi Nusantara Integrasi
--- Created: February 2024
+-- Created: February 2026
 -- ============================================
 
 -- Create Database
