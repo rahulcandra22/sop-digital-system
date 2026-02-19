@@ -756,3 +756,26 @@ select.form-control {
     background: #3b82f6;
     border-radius: 10px;
 }
+
+/* FORCE FIX ALIGNMENT */
+.step,
+.step * {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+.step {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 15px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}

@@ -81,16 +81,68 @@ if (mysqli_num_rows($result) == 0) {
         }
         
         /* Print Override */
-        @media print {
-            .sidebar, .topbar, .btn { display: none !important; }
-            .main-content { margin-left: 0 !important; }
-            .card { box-shadow: none !important; border: 1px solid #000 !important; background: white !important; color: black !important; }
-            .card-header-glow { background: #eee !important; color: black !important; border-bottom: 1px solid #ccc !important; }
-            .section-box, .meta-grid { background: white !important; border: 1px solid #ddd !important; color: black !important; box-shadow: none !important; }
-            .section-box p, .section-box pre, .meta-value { color: black !important; text-shadow: none !important; }
-            .meta-label { color: #555 !important; }
-            body { background: white !important; }
-        }
+@media print {
+
+    body {
+        background: white !important;
+    }
+
+    .sidebar,
+    .topbar,
+    .btn-logout {
+        display: none !important;
+        min-height: auto !important;
+    }
+
+    .dashboard-wrapper {
+        display: block !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .content-wrapper {
+        padding: 0 !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    .card-header-glow {
+        background: #f2f2f2 !important;
+        color: black !important;
+    }
+
+    .section-box {
+        background: #fff !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        page-break-inside: auto !important;
+    }
+
+    .section-green,
+    .section-blue,
+    .section-violet {
+        background: #fff !important;
+        border-left: none !important;
+        box-shadow: none !important;
+    }
+
+    .section-box pre {
+        display: block !important;
+        white-space: pre-wrap !important;
+        color: #000 !important;
+    }
+
+}
     </style>
 </head>
 <body>
@@ -127,8 +179,9 @@ if (mysqli_num_rows($result) == 0) {
             
             <div class="content-wrapper">
                 <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                    <a href="browse_sop.php" class="btn btn-info"><i class="fas fa-arrow-left"></i> Kembali</a>
-                    <button onclick="window.print()" class="btn btn-success"><i class="fas fa-print"></i> Cetak</button>
+<a href="print_sop.php?id=<?php echo $sop['id']; ?>" class="btn btn-success">
+    <i class="fas fa-print"></i> Cetak
+</a>
                 </div>
                 
                 <div class="card">
