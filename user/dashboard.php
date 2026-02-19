@@ -154,17 +154,50 @@ requireLogin();
                         <div class="table-responsive">
                             <table>
                                 <thead><tr><th>No</th><th>Judul SOP</th><th>Kategori</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr></thead>
-                                <tbody>
-                                    <?php $no = 1; while ($row = mysqli_fetch_assoc($result_recent)): ?>
-                                    <tr>
-                                        <td><?php echo $no++; ?></td>
-                                        <td><strong><?php echo htmlspecialchars($row['judul']); ?></strong></td>
-                                        <td><span class="badge"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td>
-                                        <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
-                                        <td><a href="view_sop.php?id=<?php echo $row['id']; ?>" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Lihat</a></td>
-                                    </tr>
-                                    <?php endwhile; ?>
-                                </tbody>
+                            <tbody>
+                                <?php $no = 1; while ($row = mysqli_fetch_assoc($result_recent)): ?>
+                            <tr>
+                            <td><?php echo $no++; ?></td>
+                            <td>
+                                <strong><?php echo htmlspecialchars($row['judul']); ?></strong>
+                            </td>
+                            <td>
+                                <span class="badge">
+                        <?php echo htmlspecialchars($row['nama_kategori']); ?>
+                    </span>
+                </td>
+
+        <!-- STATUS -->
+        <td>
+            <?php if ($row['status'] == 'Disetujui'): ?>
+                <span class="badge" style="background: rgba(16,185,129,0.2); color:#34d399; border:1px solid rgba(16,185,129,0.4);">
+                Disetujui
+                </span>
+        <?php elseif ($row['status'] == 'Pending'): ?>
+                <span class="badge" style="background: rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.4);">
+                Pending
+                </span>
+        <?php else: ?>
+                <span class="badge" style="background: rgba(239,68,68,0.2); color:#f87171; border:1px solid rgba(239,68,68,0.4);">
+                Ditolak
+                </span>
+        <?php endif; ?>
+        </td>
+
+        <!-- TANGGAL -->
+        <td>
+        <?php echo date('d/m/Y', strtotime($row['created_at'])); ?>
+        </td>
+
+        <!-- AKSI -->
+        <td>
+        <a href="view_sop.php?id=<?php echo $row['id']; ?>" class="btn btn-info btn-sm">
+            <i class="fas fa-eye"></i> Lihat
+            </a>
+        </td>
+        </tr>
+        <?php endwhile; ?>
+        </tbody>
                             </table>
                         </div>
                     </div>
