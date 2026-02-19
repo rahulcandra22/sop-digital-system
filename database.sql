@@ -65,10 +65,10 @@ INSERT INTO `users` (`id`, `username`, `password`, `role`, `nama_lengkap`, `crea
 -- Sample Data: Categories
 -- ============================================
 INSERT INTO `categories` (`id`, `nama_kategori`, `deskripsi`, `created_at`) VALUES
-(1, 'IT & Teknologi', 'Kategori untuk proses kerja terkait IT dan teknologi', CURRENT_TIMESTAMP),
-(2, 'Administrasi', 'Kategori untuk proses kerja administrasi', CURRENT_TIMESTAMP),
-(3, 'Keuangan', 'Kategori untuk proses kerja keuangan', CURRENT_TIMESTAMP),
-(4, 'SDM', 'Kategori untuk proses kerja sumber daya manusia', CURRENT_TIMESTAMP);
+(1, 'IT & Teknologi', 'Pengembangan perangkat lunak, integrasi sistem, dan pemeliharaan infrastruktur teknologi informasi untuk mendukung operasional yang efisien', CURRENT_TIMESTAMP),
+(2, 'Administrasi', 'Prosedur manajemen operasional kantor, pengadaan aset, dan layanan umum perusahaan', CURRENT_TIMESTAMP),
+(3, 'Keuangan', 'Pengelolaan sumber dan laporan keuangan perusahaan', CURRENT_TIMESTAMP),
+(4, 'SDM', 'Manajemen sumber daya manusia mencakup rekrutmen hingga administrasi kesejahteraan karyawan', CURRENT_TIMESTAMP);
 
 -- ============================================
 -- Sample Data: SOP
