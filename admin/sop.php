@@ -186,33 +186,38 @@ if (isset($_GET['delete'])) {
                             <thead><tr><th width="5%">No</th><th width="25%">Judul</th><th width="15%">Kategori</th><th width="25%">Deskripsi</th><th width="12%">Dibuat Oleh</th><th width="10%">Status</th><th width="10%">Tanggal</th><th width="8%">Aksi</th></tr></thead>
                             <tbody>
                                 <?php $no=1; while($row=mysqli_fetch_assoc($result)): ?>
-                                <tr><td><?php echo $no++; ?></td><td><strong><?php echo htmlspecialchars($row['judul']); ?></strong></td><td><span class="badge"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td><td><?php echo substr(htmlspecialchars($row['deskripsi']),0,60).'...'; ?></td><td><?php echo htmlspecialchars($row['creator']); ?></td>
+                                <tr>
+                                <td><?php echo $no++; ?></td>
+                                <td><strong><?php echo htmlspecialchars($row['judul']); ?></strong></td>
+                                <td><span class="badge"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td>
+                                <td><?php echo substr(htmlspecialchars($row['deskripsi']), 0, 60) . '...'; ?></td>
+                                <td><?php echo htmlspecialchars($row['creator']); ?></td>
 
-        <!-- KOLOM STATUS -->
-        <td>
-        <?php
-    $s = trim($row['status']);
-    switch($s) {
-        case 'Draft':
-            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(71,85,105,0.5);color:#cbd5e1;border:1px solid #475569">Draft</span>';
-                break;
-        case 'Review':
-            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(245,158,11,0.3);color:#fbbf24;border:1px solid #d97706">Review</span>';
-            break;
-        case 'Disetujui':
-            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(16,185,129,0.3);color:#34d399;border:1px solid #059669">Disetujui</span>';
-                break;
-        default:
-        echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(239,68,68,0.3);color:#f87171;border:1px solid #dc2626">'.$s.'</span>';
-        }
-        ?>
+                            <td>
+                            <?php
+                            $s = trim($row['status']);
+                                switch($s) {
+                                case 'Draft':
+                            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(71,85,105,0.5);color:#cbd5e1;border:1px solid #475569">Draft</span>';
+                                break;
+                                case 'Review':
+                            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(245,158,11,0.3);color:#fbbf24;border:1px solid #d97706">Review</span>';
+                                break;
+                                case 'Disetujui':
+                            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(16,185,129,0.3);color:#34d399;border:1px solid #059669">Disetujui</span>';
+                                break;
+                            default:
+                            echo '<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;background:rgba(239,68,68,0.3);color:#f87171;border:1px solid #dc2626">'.$s.'</span>';
+                        }
+                        ?>
+                    </td>
+                <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
+                <td>
+            <button onclick="viewSOP(<?php echo $row['id']; ?>)" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></button>
+            <button onclick="editSOP(<?php echo $row['id']; ?>)" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></button>
+        <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>, 'SOP')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
     </td>
-<td><?php echo $row['status']; ?></td>
-                                <td>
-                                    <button onclick="viewSOP(<?php echo $row['id']; ?>)" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></button>
-                                    <button onclick="editSOP(<?php echo $row['id']; ?>)" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></button>
-                                    <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>, 'SOP')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
-                                </td></tr>
+</tr>
                                 <?php endwhile; ?>
                                 <?php if(mysqli_num_rows($result)==0): ?><tr><td colspan="7" style="text-align:center;padding:20px;">Belum ada SOP</td></tr><?php endif; ?>
                             </tbody>
@@ -226,8 +231,8 @@ if (isset($_GET['delete'])) {
     <div id="addModal" class="modal"><div class="modal-content" style="max-width:800px">
         <div class="modal-header"><h3><i class="fas fa-plus"></i> Tambah SOP</h3><span class="close" onclick="closeModal('addModal')">&times;</span></div>
         <div class="modal-body"><form method="POST" action="" enctype="multipart/form-data"><input type="hidden" name="action" value="add">
-            <div class="form-group"><label>Judul SOP *</label><input type="text" name="judul" class="form-control" required></div>
-            <div class="form-group"><label>Kategori *</label><select name="kategori_id" class="form-control" required><option value="">-- Pilih --</option><?php mysqli_data_seek($result_cat,0); while($cat=mysqli_fetch_assoc($result_cat)): ?><option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nama_kategori']); ?></option><?php endwhile; ?></select></div>
+            <div class="form-group"><label>Judul SOP</label><input type="text" name="judul" class="form-control" required></div>
+            <div class="form-group"><label>Kategori</label><select name="kategori_id" class="form-control" required><option value="">-- Pilih --</option><?php mysqli_data_seek($result_cat,0); while($cat=mysqli_fetch_assoc($result_cat)): ?><option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nama_kategori']); ?></option><?php endwhile; ?></select></div>
             <div class="form-group"><label>Deskripsi</label><textarea name="deskripsi" class="form-control" rows="3"></textarea></div>
             <div class="form-group"><label>Langkah-langkah *</label><textarea name="langkah_kerja" class="form-control" rows="8" required></textarea></div>
             <div class="form-group"><label>Status</label>

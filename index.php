@@ -421,7 +421,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 <h1 class="login-title">SINERGI<br>NUSANTARA<br>INTEGRASI</h1>
                 <p class="login-subtitle">
-                    Platform digital yang terintegrasi untuk solusi bisnis di masa depan.
+                    Sinergi Nusantara Integrasi adalah penyedia solusi teknologi terintegrasi kelas dunia yang menghadirkan perangkat lunak inovatif untuk membantu efisiensi dan efektivitas bisnis.
                 </p>
                 
                 <!-- SVG Custom Kompak -->

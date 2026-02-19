@@ -55,13 +55,13 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             
             // Judul
             echo '<div class="form-group">
-                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Judul SOP *</label>
+                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Judul SOP</label>
                 <input type="text" name="judul" class="form-control" value="' . htmlspecialchars($row['judul']) . '" required>
             </div>';
             
             // Kategori
             echo '<div class="form-group">
-                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Kategori *</label>
+                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Kategori</label>
                 <select name="kategori_id" class="form-control" required>';
             while ($cat = mysqli_fetch_assoc($result_cat)) {
                 $selected = ($cat['id'] == $row['kategori_id']) ? 'selected' : '';
@@ -77,13 +77,13 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             
             // Langkah
             echo '<div class="form-group">
-                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Langkah-langkah *</label>
+                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Langkah-langkah</label>
                 <textarea name="langkah_kerja" class="form-control" rows="8" required>' . htmlspecialchars($row['langkah_kerja']) . '</textarea>
             </div>';
             
             // Status (sebelum tombol)
             echo '<div class="form-group">
-                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Status *</label>
+                <label style="display:block;margin-bottom:8px;color:#cbd5e1;">Status</label>
                 <select name="status" class="form-control" required>';
             $statuses = ['Draft', 'Review', 'Disetujui', 'Revisi'];
             foreach ($statuses as $st) {

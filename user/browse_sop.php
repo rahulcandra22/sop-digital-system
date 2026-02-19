@@ -85,7 +85,7 @@ if ($search) {
             <div class="sidebar-header">
                 <img src="../assets/images/logo.png" alt="Logo" class="sidebar-logo">
                 <h3 style="color: white;">SOP Digital</h3>
-                <p style="color: #94a3b8;">User Portal</p>
+                <p style="color: #94a3b8;">User</p>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="dashboard.php"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
