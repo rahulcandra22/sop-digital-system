@@ -130,26 +130,26 @@ if (!$result_recent) {
         .grid-buttons a:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
         /* Status */
-.status-draft {
-    background: rgba(71, 85, 105, 0.3);
-    color: #94a3b8;
-    border: 1px solid rgba(71, 85, 105, 0.5);
-}
-.status-review {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.4);
-}
-.status-approved {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.4);
-}
-.status-revisi {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-}
+        .status-draft {
+        background: rgba(71, 85, 105, 0.3);
+        color: #94a3b8;
+        border: 1px solid rgba(71, 85, 105, 0.5);
+        }
+        .status-review {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+        .status-approved {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .status-revisi {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        }
     </style>
 </head>
 <body>

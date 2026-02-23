@@ -76,8 +76,8 @@ if (mysqli_query($conn, $sql)) {
     echo "Error creating table: " . mysqli_error($conn) . "<br>";
 }
 
-// Insert default admin user (password: SINERGIJAYA)
-$password_admin = password_hash('SINERGIJAYA', PASSWORD_DEFAULT);
+// Insert default admin user (password: sinergi)
+$password_admin = password_hash('sinergi', PASSWORD_DEFAULT);
 $sql = "INSERT INTO users (username, password, role, nama_lengkap) VALUES 
         ('sinergi@gmail.com', '$password_admin', 'admin', 'Administrator')
         ON DUPLICATE KEY UPDATE username=username";
@@ -88,10 +88,10 @@ if (mysqli_query($conn, $sql)) {
     echo "Error creating admin: " . mysqli_error($conn) . "<br>";
 }
 
-// Insert default regular user (password: rahul123)
-$password_user = password_hash('rahul123', PASSWORD_DEFAULT);
+// Insert default regular user (password: rahul)
+$password_user = password_hash('rahul', PASSWORD_DEFAULT);
 $sql = "INSERT INTO users (username, password, role, nama_lengkap) VALUES 
-        ('rahulcandra', '$password_user', 'user', 'Rahul Candra Kirana')
+        ('rahulcandra', '$password_user', 'user', 'Rahul Candra')
         ON DUPLICATE KEY UPDATE username=username";
 
 if (mysqli_query($conn, $sql)) {
@@ -127,8 +127,8 @@ if (mysqli_query($conn, $sql)) {
 }
 
 echo "<br><strong>Installation completed!</strong><br>";
-echo "Admin Login: sinergi@gmail.com / SINERGIJAYA<br>";
-echo "User Login: rahulcandra / rahul123<br>";
+echo "Admin Login: sinergi@gmail.com / sinergi<br>";
+echo "User Login: rahulcandra / rahul<br>";
 echo "<br><a href='../index.php'>Go to Login Page</a>";
 
 mysqli_close($conn);

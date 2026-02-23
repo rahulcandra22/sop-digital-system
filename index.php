@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             --secondary-glow: #8b5cf6;
             --accent-orange: #f97316;
             --bg-dark: #0f172a;
-            --glass-bg: rgba(15, 23, 42, 0.7); /* Sedikit lebih solid agar jelas */
+            --glass-bg: rgba(15, 23, 42, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -122,7 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border-radius: 24px !important;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(59, 130, 246, 0.1) !important;
             
-            /* UKURAN BARU: Lebih Kompak */
             max-width: 850px !important; 
             width: 100% !important;
             
@@ -140,7 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         /* --- LEFT SIDE (BRANDING) --- */
         .login-left {
             background: linear-gradient(160deg, rgba(30, 58, 138, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%) !important;
-            /* Padding Diperkecil */
             padding: 40px 30px !important; 
             
             display: flex !important;
@@ -154,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .login-logo {
-            width: 70px; /* Logo lebih kecil */
+            width: 70px;
             height: auto;
             margin-bottom: 20px !important;
             filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
@@ -189,15 +187,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             line-height: 1.6 !important;
             margin-bottom: 25px !important;
             font-weight: 300;
-            max-width: 300px; /* Lebar teks dibatasi biar rapi */
+            max-width: 300px;
             position: relative;
             z-index: 5;
         }
 
-        /* --- STYLE SVG (DISESUAIKAN UKURANNYA) --- */
+        /* --- STYLE SVG --- */
         .custom-illustration {
             width: 100%;
-            /* Batasi tinggi agar tidak mendorong kotak menjadi besar */
             max-height: 220px; 
             height: auto;
             opacity: 0.95;
@@ -213,7 +210,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         /* --- RIGHT SIDE (FORM) --- */
         .login-right {
-            /* Padding diperkecil biar pas */
             padding: 40px 35px !important; 
             background: transparent !important;
             display: flex;
@@ -227,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .form-header h2 {
             color: white !important;
-            font-size: 24px !important; /* Judul lebih kecil */
+            font-size: 24px !important;
             margin-bottom: 8px !important;
             font-weight: 600;
             letter-spacing: -0.5px;
@@ -239,13 +235,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .form-group {
-            margin-bottom: 22px !important; /* Jarak input dipersempit */
+            margin-bottom: 22px !important;
             position: relative;
         }
 
         .form-group label {
             color: #e2e8f0 !important;
-            font-size: 12px !important; /* Label sedikit lebih kecil */
+            font-size: 12px !important;
             font-weight: 600 !important;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -272,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .form-control {
             width: 100%;
-            padding: 14px 14px 14px 45px !important; /* Padding input disesuaikan */
+            padding: 14px 14px 14px 45px !important;
             background: var(--input-bg) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
             border-radius: 12px !important;
@@ -338,7 +334,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .btn-primary {
             width: 100% !important;
-            padding: 14px !important; /* Tombol sedikit lebih pendek */
+            padding: 14px !important;
             background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important;
             color: white !important;
             border: none !important;

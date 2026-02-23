@@ -32,11 +32,10 @@ $sop = mysqli_fetch_assoc($result);
         margin: 20mm;
     }
 
-    /* Background gelap seperti tema app */
     html, body {
         margin: 0;
         padding: 20px;
-        background: #020617 !important; /* ← INI YANG PENTING, body harus sama */
+        background: #020617 !important;
         min-height: 100vh;
     }
 
@@ -47,7 +46,6 @@ $sop = mysqli_fetch_assoc($result);
         line-height: 1.6;
     }
 
-    /* Kertas putih di tengah */
     .paper {
         background: #ffffff;
         max-width: 794px;
@@ -58,7 +56,6 @@ $sop = mysqli_fetch_assoc($result);
         color: #000;
     }
 
-    /* Saat print: background gelap tidak ikut tercetak */
     @media print {
         html, body {
             background: #ffffff !important;
@@ -152,8 +149,7 @@ $sop = mysqli_fetch_assoc($result);
 </style>
 </head>
 <body>
-<div class="paper"> <!-- ← KERTAS PUTIH DI TENGAH -->
-
+<div class="paper">
     <div class="header">
         <img src="../assets/images/logo.png" alt="Logo">
         <h2>STANDARD OPERATING PROCEDURE (SOP)</h2>
@@ -207,10 +203,9 @@ $sop = mysqli_fetch_assoc($result);
         Dokumen SOP Digital - <?php echo htmlspecialchars($sop['judul']); ?> - Dicetak pada <?php echo date('d/m/Y H:i'); ?>
     </div>
 
-</div> <!-- akhir .paper -->
+</div>
 
 <script>
-    // Delay sedikit agar background gelap sempat render sebelum dialog print
     setTimeout(function() {
         window.print();
     }, 300);

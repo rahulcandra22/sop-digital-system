@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nama = trim($_POST['nama_kategori']);
             $deskripsi = trim($_POST['deskripsi']);
             
-$cek = mysqli_query($conn, "SELECT id FROM categories WHERE nama_kategori='$nama'");
-if (mysqli_num_rows($cek) > 0) {
-    setFlashMessage('danger', 'Nama kategori sudah ada!');
-    header('Location: kategori.php');
-    exit();
-}
+            $cek = mysqli_query($conn, "SELECT id FROM categories WHERE nama_kategori='$nama'");
+            if (mysqli_num_rows($cek) > 0) {
+                setFlashMessage('danger', 'Nama kategori sudah ada!');
+                header('Location: kategori.php');
+            exit();
+            }
 
             if (empty($nama)) {
                 setFlashMessage('danger', 'Nama kategori wajib diisi!');
