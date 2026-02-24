@@ -3,10 +3,10 @@ require_once '../config/database.php';
 require_once '../includes/session.php';
 requireUser();
 
- $kategori_filter = isset($_GET['kategori']) ? $_GET['kategori'] : '';
- $search = isset($_GET['search']) ? $_GET['search'] : '';
+$kategori_filter = isset($_GET['kategori']) ? $_GET['kategori'] : '';
+$search = isset($_GET['search']) ? $_GET['search'] : '';
 
- $where = "WHERE s.status = 'Disetujui'";
+$where = "WHERE s.status = 'Disetujui'";
 
 if ($kategori_filter) { 
     $where .= " AND s.kategori_id = " . intval($kategori_filter); 
@@ -21,11 +21,11 @@ if ($search) {
     )";
 }
 
- $sql = "SELECT s.*, c.nama_kategori FROM sop s LEFT JOIN categories c ON s.kategori_id = c.id $where ORDER BY s.created_at DESC";
- $result = mysqli_query($conn, $sql);
+$sql = "SELECT s.*, c.nama_kategori FROM sop s LEFT JOIN categories c ON s.kategori_id = c.id $where ORDER BY s.created_at DESC";
+$result = mysqli_query($conn, $sql);
 
- $sql_cat = "SELECT * FROM categories ORDER BY nama_kategori ASC";
- $result_cat = mysqli_query($conn, $sql_cat);
+$sql_cat = "SELECT * FROM categories ORDER BY nama_kategori ASC";
+$result_cat = mysqli_query($conn, $sql_cat);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -37,55 +37,68 @@ if ($search) {
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary-glow: #3b82f6; --glass-bg: rgba(30, 41, 59, 0.7); --text-main: #f8fafc; }
-        body { font-family: 'Outfit', sans-serif !important; background-color: #020617 !important; color: var(--text-main); overflow-x: hidden; }
-        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%); }
+        :root{--bg:#020617;--sb:rgba(15,23,42,.97);--tb:rgba(15,23,42,.87);--cb:rgba(30,41,59,.75);--gb:rgba(255,255,255,.08);--tm:#f8fafc;--tmut:#94a3b8;--tsub:#cbd5e1;--ibg:rgba(0,0,0,.30);--lf:brightness(0) invert(1);--lbg:rgba(239,68,68,.18);--lc:#fca5a5;--lbor:rgba(239,68,68,.30);--sl:#94a3b8;--sa:rgba(59,130,246,.12);--togbg:rgba(30,41,59,.80);--togc:#94a3b8;}
+        [data-theme="light"]{--bg:#f0f4f8;--sb:rgba(255,255,255,.98);--tb:rgba(255,255,255,.96);--cb:rgba(255,255,255,.95);--gb:rgba(0,0,0,.09);--tm:#0f172a;--tmut:#64748b;--tsub:#334155;--ibg:rgba(255,255,255,.95);--lf:none;--lbg:rgba(239,68,68,.07);--lc:#dc2626;--lbor:rgba(239,68,68,.18);--sl:#64748b;--sa:rgba(59,130,246,.08);--togbg:rgba(241,245,249,.95);--togc:#475569;}
+        *,*::before,*::after{box-sizing:border-box;}
+        body{font-family:'Outfit',sans-serif!important;background-color:var(--bg)!important;color:var(--tm)!important;margin:0;overflow-x:hidden;transition:background-color .35s,color .35s;}
+        body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 15% 50%,rgba(59,130,246,.07),transparent 30%);pointer-events:none;}
         
-        .sidebar { background: rgba(15, 23, 42, 0.95) !important; border-right: 1px solid rgba(255,255,255,0.08) !important; backdrop-filter: blur(10px); }
-        .sidebar-menu a { color: #94a3b8 !important; transition: 0.3s; border-left: 3px solid transparent; }
-        .sidebar-menu a:hover, .sidebar-menu a.active { background: rgba(59, 130, 246, 0.1) !important; color: #fff !important; border-left-color: var(--primary-glow); }
-        .sidebar-logo { filter: brightness(0) invert(1); }
-        .main-content { background: transparent !important; }
-        .topbar { background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
-        .topbar-left h2 { color: #fff !important; }
-        .user-avatar { background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important; color: white; }
-        .btn-logout { padding: 8px 20px; background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; text-decoration: none; }
+        .sidebar{background:var(--sb)!important;border-right:1px solid var(--gb)!important;backdrop-filter:blur(12px);}
+        .sidebar-header{border-bottom:1px solid var(--gb)!important;padding:20px;}
+        .sidebar-header h3{color:var(--tm)!important;margin:4px 0 2px;font-size:16px;font-weight:700;}
+        .sidebar-header p{color:var(--tmut)!important;margin:0;font-size:12px;}
+        .sidebar-logo{filter:var(--lf);max-width:80px;}
+        .sidebar-menu{list-style:none;margin:0;padding:12px 0;}
+        .sidebar-menu li a{display:flex;align-items:center;gap:10px;padding:12px 20px;color:var(--sl)!important;text-decoration:none;border-left:3px solid transparent;font-size:14px;font-weight:500;transition:.25s;}
+        .sidebar-menu li a:hover,.sidebar-menu li a.active{background:var(--sa)!important;color:#3b82f6!important;border-left-color:#3b82f6;}
+        
+        .main-content{background:transparent!important;}
+        .topbar{background:var(--tb)!important;border-bottom:1px solid var(--gb)!important;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;}
+        .topbar-left h2{color:var(--tm)!important;font-size:20px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px;}
+        .topbar-right{display:flex;align-items:center;gap:12px;}
+        
+        #theme-toggle-btn{all:unset;cursor:pointer;width:40px;height:40px;border-radius:50%;background:var(--togbg)!important;border:1px solid var(--gb)!important;color:var(--togc)!important;display:flex!important;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0;transition:all .25s;}
+        #theme-toggle-btn:hover{color:#3b82f6!important;transform:scale(1.1);}
+        
+        .user-info{display:flex;align-items:center;gap:10px;}
+        .user-info strong{color:var(--tm)!important;font-size:14px;display:block;}
+        .user-info p{color:var(--tmut)!important;margin:0;font-size:11px;}
+        .user-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6)!important;color:#fff!important;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+        .btn-logout{padding:8px 18px;background:var(--lbg)!important;color:var(--lc)!important;border:1px solid var(--lbor)!important;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+        
+        .content-wrapper{padding:24px;}
+        .card{background:var(--cb)!important;border:1px solid var(--gb)!important;border-radius:16px!important;box-shadow:0 4px 24px rgba(0,0,0,.10);margin-bottom:24px;}
+        .card-header{padding:18px 22px;border-bottom:1px solid var(--gb);}
+        .card-header h3{color:var(--tm)!important;margin:0;font-size:16px;font-weight:600;}
+        .card-body{padding:22px;}
 
-        .card { background: var(--glass-bg) !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 16px !important; }
-        .card-header h3 { color: #fff !important; }
-        
-        /* Form */
-        .form-control { width: 100%; padding: 12px; background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important; color: #fff !important; }
-        .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59,130,246,0.3); }
-        .form-group label { color: #cbd5e1; margin-bottom: 8px; display: block; font-weight: 500; }
-        
-        /* Buttons */
-        .btn { border-radius: 8px !important; border: none !important; color: white; transition: 0.3s; }
-        .btn-success { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
-        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626) !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
-        .btn-info { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .form-control{width:100%;padding:11px 14px;background:var(--ibg)!important;border:1px solid var(--gb)!important;border-radius:8px;color:var(--tm)!important;font-family:'Outfit',sans-serif;font-size:14px;transition:.3s;}
+        .form-control:focus{outline:none;border-color:#3b82f6!important;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+        .form-group label{color:var(--tsub)!important;margin-bottom:8px;display:block;font-weight:600;font-size:13px;}
 
-        /* SOP Grid Card */
-        .sop-card {
-            background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 20px;
-            transition: all 0.3s ease; position: relative; overflow: hidden;
-        }
-        .sop-card:hover { border-color: rgba(59, 130, 246, 0.5); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); background: rgba(30, 41, 59, 0.8); }
-        .sop-card h4 { color: #fff; margin-bottom: 10px; font-size: 1.1rem; }
-        .sop-card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px; }
-        .sop-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .sop-meta small { color: #64748b; }
-        .empty-state { text-align: center; padding: 60px 20px; color: #64748b; }
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px!important;border:none!important;color:#fff!important;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none;transition:.25s;}
+        .btn:hover{filter:brightness(1.1);transform:translateY(-2px);}
+        .btn-success{background:linear-gradient(135deg,#10b981,#059669)!important;box-shadow:0 4px 12px rgba(16,185,129,.3);}
+        .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626)!important;box-shadow:0 4px 12px rgba(239,68,68,.3);}
+        .btn-info{background:linear-gradient(135deg,#3b82f6,#2563eb)!important;box-shadow:0 4px 12px rgba(59,130,246,.3);}
+        .badge{padding:5px 12px;border-radius:20px;font-size:12px;background:var(--sa);color:#3b82f6;border:1px solid rgba(59,130,246,.3);}
+
+        .sop-card{background:var(--cb);border:1px solid var(--gb);border-radius:12px;padding:20px;transition:all .3s ease;position:relative;overflow:hidden;}
+        .sop-card:hover{border-color:#3b82f6;transform:translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,.1);}
+        .sop-card h4{color:var(--tm);margin-bottom:10px;font-size:16px;font-weight:600;}
+        .sop-card p{color:var(--tsub);font-size:13px;line-height:1.6;margin-bottom:15px;}
+        .sop-meta{display:flex;justify-content:space-between;align-items:center;padding-top:15px;border-top:1px solid var(--gb);}
+        .sop-meta small{color:var(--tmut);}
+        .empty-state{text-align:center;padding:60px 20px;color:var(--tmut);}
+        .empty-state h3{color:var(--tm);margin-top:10px;}
     </style>
 </head>
 <body>
     <div class="dashboard-wrapper">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../assets/images/logo.png" alt="Logo" class="sidebar-logo">
-                <h3 style="color: white;">SOP Digital</h3>
-                <p style="color: #94a3b8;">User</p>
+                <img src="../assets/images/logo.png" alt="Logo" class="sidebar-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2991/2991148.png'">
+                <h3>SOP Digital</h3><p>User Panel</p>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="dashboard.php"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
@@ -96,9 +109,13 @@ if ($search) {
         
         <main class="main-content">
             <div class="topbar">
-                <div class="topbar-left"><h2><i class="fas fa-search"></i> Cari SOP</h2></div>
+                <div class="topbar-left"><h2><i class="fas fa-search" style="color:#3b82f6"></i> Cari SOP</h2></div>
                 <div class="topbar-right">
-                    <div class="user-info"><div class="user-avatar"><?php echo strtoupper(substr(getNamaLengkap(), 0, 1)); ?></div><div><strong style="color:white"><?php echo getNamaLengkap(); ?></strong><p style="margin:0;font-size:12px;color:#94a3b8">User</p></div></div>
+                    <button type="button" id="theme-toggle-btn" title="Ganti Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
+                    <div class="user-info">
+                        <div class="user-avatar"><?php echo strtoupper(substr(getNamaLengkap(), 0, 1)); ?></div>
+                        <div><strong><?php echo getNamaLengkap(); ?></strong><p>User</p></div>
+                    </div>
                     <a href="logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -160,4 +177,21 @@ if ($search) {
         </main>
     </div>
     <script src="../assets/js/script.js"></script>
+    <script>
+    (function(){if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light');})();
+    document.addEventListener('DOMContentLoaded',function(){
+      var btn=document.getElementById('theme-toggle-btn'),icon=document.getElementById('theme-icon');
+      function sync(){icon.className=document.documentElement.getAttribute('data-theme')==='light'?'fas fa-sun':'fas fa-moon';}
+      sync();
+      if(btn){
+        btn.addEventListener('click',function(){
+          var light=document.documentElement.getAttribute('data-theme')==='light';
+          if(light){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','dark');}
+          else{document.documentElement.setAttribute('data-theme','light');localStorage.setItem('theme','light');}
+          sync();
+        });
+      }
+    });
+    </script>
 </body>
+</html>

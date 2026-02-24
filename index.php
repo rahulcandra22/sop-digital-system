@@ -44,21 +44,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* --- TEMA GELAP (DEFAULT) --- */
         :root {
             --primary-glow: #3b82f6;
             --secondary-glow: #8b5cf6;
             --accent-orange: #f97316;
+            
+            --bg-main: #020617;
             --bg-dark: #0f172a;
             --glass-bg: rgba(15, 23, 42, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --input-bg: rgba(0, 0, 0, 0.4);
+            
+            --left-panel-bg: linear-gradient(160deg, rgba(30, 58, 138, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
+            --grid-color: rgba(255, 255, 255, 0.03);
+            --svg-screen-top: #1e293b;
+            --svg-screen-bottom: #0f172a;
+        }
+
+        /* --- TEMA TERANG --- */
+        [data-theme="light"] {
+            --bg-main: #f1f5f9;
+            --bg-dark: #e2e8f0;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            
+            --left-panel-bg: linear-gradient(160deg, rgba(219, 234, 254, 0.7) 0%, rgba(241, 245, 249, 0.9) 100%);
+            --grid-color: rgba(0, 0, 0, 0.04);
+            --svg-screen-top: #cbd5e1;
+            --svg-screen-bottom: #94a3b8;
         }
 
         body {
             font-family: 'Outfit', sans-serif !important;
-            background-color: #020617 !important;
+            background-color: var(--bg-main) !important;
             color: var(--text-main);
             overflow-x: hidden;
             min-height: 100vh;
@@ -67,6 +91,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             align-items: center;
             position: relative;
             margin: 0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* --- TOGGLE BUTTON --- */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            z-index: 100;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            color: var(--primary-glow);
         }
 
         /* --- BACKGROUND --- */
@@ -97,14 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .grid-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
             background-size: 40px 40px;
             z-index: -1;
             mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            transition: background-image 0.5s ease;
         }
 
-        /* --- CONTAINER (UKURAN DIKECILKAN) --- */
+        /* --- CONTAINER --- */
         .login-container {
             width: 100%;
             padding: 20px;
@@ -120,15 +174,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             -webkit-backdrop-filter: blur(25px) !important;
             border: 1px solid var(--glass-border) !important;
             border-radius: 24px !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(59, 130, 246, 0.1) !important;
-            
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3), 0 0 40px rgba(59, 130, 246, 0.1) !important;
             max-width: 850px !important; 
             width: 100% !important;
-            
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
             overflow: hidden;
             animation: cardEntrance 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: background 0.5s ease, border-color 0.5s ease;
         }
 
         @keyframes cardEntrance {
@@ -138,24 +191,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         /* --- LEFT SIDE (BRANDING) --- */
         .login-left {
-            background: linear-gradient(160deg, rgba(30, 58, 138, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%) !important;
+            background: var(--left-panel-bg) !important;
             padding: 40px 30px !important; 
-            
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important;
             align-items: center !important;
             text-align: center !important;
-            color: white;
+            color: var(--text-main);
             position: relative;
-            border-right: 1px solid rgba(255,255,255,0.05) !important;
+            border-right: 1px solid var(--glass-border) !important;
+            transition: background 0.5s ease;
         }
 
         .login-logo {
             width: 70px;
             height: auto;
             margin-bottom: 20px !important;
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
             animation: floatLogo 6s ease-in-out infinite;
             position: relative;
             z-index: 5;
@@ -173,10 +226,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             letter-spacing: 1px !important;
             margin-bottom: 15px !important;
             line-height: 1.2 !important;
-            background: linear-gradient(135deg, #ffffff 0%, #60a5fa 50%, #3b82f6 100%);
+            background: linear-gradient(135deg, var(--text-main) 0%, #60a5fa 50%, #3b82f6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.2));
             position: relative;
             z-index: 5;
         }
@@ -186,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: var(--text-muted) !important;
             line-height: 1.6 !important;
             margin-bottom: 25px !important;
-            font-weight: 300;
+            font-weight: 400;
             max-width: 300px;
             position: relative;
             z-index: 5;
@@ -222,7 +275,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .form-header h2 {
-            color: white !important;
+            color: var(--text-main) !important;
             font-size: 24px !important;
             margin-bottom: 8px !important;
             font-weight: 600;
@@ -240,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .form-group label {
-            color: #e2e8f0 !important;
+            color: var(--text-main) !important;
             font-size: 12px !important;
             font-weight: 600 !important;
             text-transform: uppercase;
@@ -260,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 16px;
             transition: 0.3s;
             z-index: 2;
@@ -270,9 +323,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             padding: 14px 14px 14px 45px !important;
             background: var(--input-bg) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid var(--glass-border) !important;
             border-radius: 12px !important;
-            color: white !important;
+            color: var(--text-main) !important;
             font-size: 14px !important;
             transition: all 0.3s ease !important;
             font-family: 'Outfit', sans-serif !important;
@@ -280,14 +333,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .form-control::placeholder {
-            color: #475569;
+            color: var(--text-muted);
             font-weight: 300;
         }
 
         .form-control:focus {
             outline: none !important;
             border-color: var(--primary-glow) !important;
-            background: rgba(0, 0, 0, 0.6) !important;
+            background: var(--glass-bg) !important;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
 
@@ -304,7 +357,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border-left: 3px solid var(--primary-glow);
             border-radius: 6px;
             font-size: 11px;
-            color: #bfdbfe;
+            color: var(--text-main);
             animation: fadeInHint 0.3s ease forwards;
         }
 
@@ -314,9 +367,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .input-hint strong {
-            color: white;
+            color: var(--text-main);
             font-weight: 600;
-            background: rgba(255,255,255,0.1);
+            background: var(--glass-border);
             padding: 1px 5px;
             border-radius: 4px;
             cursor: pointer;
@@ -324,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .input-hint strong:hover {
-            background: rgba(255,255,255,0.2);
+            background: rgba(59, 130, 246, 0.2);
         }
 
         @keyframes fadeInHint {
@@ -372,21 +425,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .alert-danger {
             background: rgba(239, 68, 68, 0.1) !important;
-            color: #fca5a5 !important;
+            color: #ef4444 !important;
             border: 1px solid rgba(239, 68, 68, 0.2) !important;
         }
         .alert-success {
             background: rgba(16, 185, 129, 0.1) !important;
-            color: #6ee7b7 !important;
+            color: #10b981 !important;
             border: 1px solid rgba(16, 185, 129, 0.2) !important;
         }
 
         .demo-info {
             margin-top: 25px;
             padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid var(--glass-border);
             text-align: center;
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 11px;
         }
 
@@ -404,6 +457,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 
+    <button class="theme-toggle" id="theme-toggle" title="Ubah Tema">
+        <i class="fas fa-moon"></i>
+    </button>
+
     <div class="grid-overlay"></div>
     <div class="ambient-light">
         <div class="orb orb-1"></div>
@@ -420,7 +477,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     Sinergi Nusantara Integrasi adalah penyedia solusi teknologi terintegrasi kelas dunia yang menghadirkan perangkat lunak inovatif untuk membantu efisiensi dan efektivitas bisnis.
                 </p>
                 
-                <!-- SVG Custom Kompak -->
                 <svg class="custom-illustration" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="grad-body" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -428,8 +484,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
                         </linearGradient>
                         <linearGradient id="grad-screen" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#1e293b;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:var(--svg-screen-top);stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:var(--svg-screen-bottom);stop-opacity:1" />
                         </linearGradient>
                         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                             <feGaussianBlur stdDeviation="4" result="blur"/>
@@ -440,20 +496,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <g>
                         <animateTransform attributeName="transform" type="translate" values="0 0; 0 -8; 0 0" dur="4s" repeatCount="indefinite" />
 
-                        <!-- Laptop Base -->
-                        <path d="M40 260 L200 320 L360 260 L200 200 Z" fill="rgba(255,255,255,0.05)" stroke="url(#grad-body)" stroke-width="2" />
-                        <!-- Laptop Screen Back -->
-                        <path d="M70 100 L70 260 L330 260 L330 100 Z" fill="rgba(15, 23, 42, 0.4)" stroke="url(#grad-body)" stroke-width="2" />
-                        <!-- Screen Content -->
-                        <rect x="85" y="120" width="230" height="120" rx="4" fill="url(#grad-screen)" stroke="rgba(255,255,255,0.1)" />
+                        <path d="M40 260 L200 320 L360 260 L200 200 Z" fill="rgba(150,150,150,0.1)" stroke="url(#grad-body)" stroke-width="2" />
+                        <path d="M70 100 L70 260 L330 260 L330 100 Z" fill="rgba(15, 23, 42, 0.2)" stroke="url(#grad-body)" stroke-width="2" />
+                        <rect x="85" y="120" width="230" height="120" rx="4" fill="url(#grad-screen)" stroke="var(--glass-border)" />
                         
-                        <!-- Code Lines -->
                         <rect x="100" y="140" width="80" height="6" rx="3" fill="#3b82f6" opacity="0.6" />
                         <rect x="100" y="155" width="120" height="6" rx="3" fill="#64748b" opacity="0.5" />
                         <rect x="100" y="170" width="100" height="6" rx="3" fill="#64748b" opacity="0.5" />
                         <rect x="100" y="185" width="60" height="6" rx="3" fill="#64748b" opacity="0.5" />
 
-                        <!-- Shield Icon -->
                         <g transform="translate(180, 140)">
                             <path d="M0 0 L20 -5 L40 0 V15 C40 25 20 40 20 40 C20 40 0 25 0 15 Z" fill="url(#grad-body)" filter="url(#glow)" opacity="0.9">
                                 <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
@@ -461,7 +512,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <path d="M12 15 L18 22 L28 10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </g>
                         
-                        <!-- Floating Particles -->
                         <circle cx="100" cy="80" r="3" fill="#3b82f6" opacity="0.8">
                             <animate attributeName="cy" values="80;70;80" dur="2s" repeatCount="indefinite" />
                             <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
@@ -534,6 +584,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // --- Fitur Toggle Tema Gelap/Terang ---
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeIcon = themeToggleBtn.querySelector('i');
+            const htmlElement = document.documentElement;
+            
+            // Cek apakah ada preferensi tema tersimpan di local storage
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            }
+
+            // Fungsi klik toggle
+            themeToggleBtn.addEventListener('click', function() {
+                if (htmlElement.getAttribute('data-theme') === 'light') {
+                    // Pindah ke Dark Mode
+                    htmlElement.removeAttribute('data-theme');
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    // Pindah ke Light Mode
+                    htmlElement.setAttribute('data-theme', 'light');
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+
+            // --- Fitur Input Hint (Bawaan Anda) ---
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const usernameHint = document.getElementById('hint-username');
