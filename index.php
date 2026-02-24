@@ -2,7 +2,7 @@
 session_start();
 require_once 'config/database.php';
 
- $error = '';
+$error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
@@ -228,10 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             line-height: 1.2 !important;
             background: linear-gradient(135deg, var(--text-main) 0%, #60a5fa 50%, #3b82f6 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.2));
-            position: relative;
-            z-index: 5;
         }
 
         .login-subtitle {

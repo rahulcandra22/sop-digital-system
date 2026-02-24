@@ -1,6 +1,7 @@
 <?php
 require_once '../config/database.php';
 require_once '../includes/session.php';
+
 requireLogin();
 
 if (!isset($_GET['id'])) {
@@ -216,16 +217,19 @@ $sop = mysqli_fetch_assoc($result);
                 min-height: auto;
                 border: none;
             }
+            
             .header-bg, .section-header {
                 background-color: #f1f5f9 !important;
-                -webkit-print-color-adjust: exact; 
-                color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
+
             .paper-preview::before {
                 opacity: 0.05 !important;
-                -webkit-print-color-adjust: exact; 
-                color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
+
             .doc-footer {
                 position: fixed;
                 bottom: 0;
