@@ -4,9 +4,9 @@ Sistem Manajemen Dokumen Standard Operating Procedure (SOP) berbasis web yang di
 
 ## 📁 Struktur Proyek
 - `/admin` : Modul khusus admin untuk manajemen data.
-- `/user` : Modul akses untuk karyawan/user biasa.
+- `/user` : Modul akses untuk karyawan atau user.
 - `/config` : Konfigurasi database dan sistem.
-- `/assets` : Kumpulan file CSS, JS, dan Gambar.
+- `/assets` : Kumpulan file HTML, CSS, JS, dan (Logo/Gambar).
 - `/includes` : File logic yang digunakan berulang (seperti session).
 
 ## ✨ Fitur Utama
@@ -19,8 +19,8 @@ Sistem Manajemen Dokumen Standard Operating Procedure (SOP) berbasis web yang di
 ## 🛠️ Teknologi yang Digunakan
 - **Backend**: PHP 8.2 (Native)
 - **Database**: MySQL / MariaDB
-- **Frontend**: Custom CSS & JavaScript
-- **Server**: XAMPP (Apache)
+- **Frontend**: HTML, CSS & JavaScript
+- **Server**: XAMPP (Apache dan MySQL)
 
 ## 🚀 Cara Instalasi
 1. Pindahkan folder ini ke direktori `htdocs` Anda.
