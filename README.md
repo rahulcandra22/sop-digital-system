@@ -1,0 +1,32 @@
+# SOP Digital System - PT. Sinergi Nusantara Integrasi
+
+Sistem manajemen dokumen Standard Operating Procedure (SOP) berbasis web yang dirancang untuk mempermudah akses, pengelolaan, dan standarisasi operasional di lingkungan perusahaan.
+
+## 📁 Struktur Proyek
+- `/admin` : Modul khusus admin untuk manajemen data.
+- `/user` : Modul akses untuk karyawan/user biasa.
+- `/config` : Konfigurasi database dan sistem.
+- `/assets` : Kumpulan file CSS, JS, dan Gambar.
+- `/includes` : File logic yang digunakan berulang (seperti session).
+
+## ✨ Fitur Utama
+- **Dashboard Interaktif**: Ringkasan data SOP yang tersedia.
+- **Authentication**: Login yang aman dengan hak akses (Admin & User).
+- **Forgot Password**: Fitur pemulihan akun melalui token.
+- **Preview & Print**: Membaca SOP langsung di web dan mencetaknya secara rapi.
+- **Manajemen Kategori**: Pengelompokan SOP berdasarkan departemen.
+
+## 🛠️ Teknologi yang Digunakan
+- **Backend**: PHP 8.2 (Native)
+- **Database**: MySQL / MariaDB
+- **Frontend**: Custom CSS & JavaScript
+- **Server**: XAMPP (Apache)
+
+## 🚀 Cara Instalasi
+1. Pindahkan folder ini ke direktori `htdocs` Anda.
+2. Import database `database.sql` melalui phpMyAdmin.
+3. Sesuaikan username dan password database di file `config/database.php`.
+4. Jalankan `localhost/sop-digital-system` pada browser Anda.
+
+---
+**Internship Project 2026** Dibuat oleh **[Rahul Candra]** sebagai bagian dari program magang di PT. Sinergi Nusantara Integrasi.
