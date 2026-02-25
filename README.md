@@ -1,4 +1,4 @@
-# SOP Digital System - PT. Sinergi Nusantara Integrasi & Universitas PGRI Semarang
+# SOP Digital System - PT. Sinergi Nusantara Integrasi
 
 Sistem Manajemen Dokumen Standard Operating Procedure (SOP) berbasis web yang dirancang untuk mempermudah akses, pengelolaan, dan standarisasi operasional di lingkungan perusahaan.
 
