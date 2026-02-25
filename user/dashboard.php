@@ -146,7 +146,7 @@ $flash = getFlashMessage();
                             <p>User</p>
                         </div>
                     </div>
-                    <a href="logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="../logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
             

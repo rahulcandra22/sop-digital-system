@@ -1,12 +1,22 @@
 <?php
 session_start();
+
+if (isset($_GET['action']) && $_GET['action'] == 'logout') {
+    session_destroy(); 
+    header('Location: index.php?logout=1'); 
+    exit();
+}
+
 require_once 'config/database.php';
 
 $error = '';
 
+$saved_username = isset($_COOKIE['remember_username']) ? $_COOKIE['remember_username'] : '';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $password = $_POST['password'];
+    $remember_me = isset($_POST['remember_me']) ? true : false;
     
     $sql = "SELECT * FROM users WHERE username = '$username'";
     $result = mysqli_query($conn, $sql);
@@ -19,6 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
             $_SESSION['role'] = $user['role'];
+            
+            // Logika "Ingat Saya" 
+            if ($remember_me) {
+                setcookie('remember_username', $username, time() + (86400 * 30), "/"); 
+            } else {
+                setcookie('remember_username', '', time() - 3600, "/"); 
+            }
             
             if ($user['role'] == 'admin') {
                 header('Location: admin/dashboard.php');
@@ -34,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -205,9 +223,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .login-logo {
-            width: 70px;
+            width: 120px;
             height: auto;
-            margin-bottom: 20px !important;
+            margin-bottom: 5px !important;
             filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
             animation: floatLogo 6s ease-in-out infinite;
             position: relative;
@@ -317,9 +335,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             z-index: 2;
         }
 
+        .input-group i.toggle-password {
+            left: auto !important;
+            right: 16px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .input-group i.toggle-password:hover {
+            color: var(--primary-glow);
+        }
+
         .form-control {
             width: 100%;
-            padding: 14px 14px 14px 45px !important;
+            padding: 14px 45px 14px 45px !important; 
             background: var(--input-bg) !important;
             border: 1px solid var(--glass-border) !important;
             border-radius: 12px !important;
@@ -342,9 +371,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
         }
 
-        .form-control:focus + i {
+        .form-control:focus + i:not(.toggle-password),
+        .form-control:focus ~ i:not(.toggle-password) {
             color: var(--primary-glow);
             transform: translateY(-50%) scale(1.1);
+        }
+
+        /* --- OPSI FORM --- */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: -10px;
+            margin-bottom: 22px;
+            font-size: 13px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.3s;
+            margin: 0;
+            text-transform: none;
+            letter-spacing: normal;
+            font-weight: 400 !important;
+        }
+
+        .remember-me:hover {
+            color: var(--text-main);
+        }
+
+        .remember-me input[type="checkbox"] {
+            accent-color: var(--primary-glow);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: var(--primary-glow);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s, text-decoration 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: var(--secondary-glow);
+            text-decoration: underline;
         }
 
         .input-hint {
@@ -362,6 +438,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .input-hint i {
             margin-right: 5px;
             color: var(--primary-glow);
+            position: relative;
+            left: 0;
+            transform: none;
         }
 
         .input-hint strong {
@@ -414,6 +493,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             gap: 10px;
             backdrop-filter: blur(10px);
             animation: slideDown 0.4s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease; 
         }
 
         @keyframes slideDown {
@@ -538,18 +618,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
                 
                 <?php if (isset($_GET['logout'])): ?>
-                    <div class="alert alert-success">
+                    <div class="alert alert-success" id="alert-logout">
                         <i class="fas fa-check-circle"></i> Anda telah berhasil logout.
                     </div>
                 <?php endif; ?>
                 
                 <form method="POST" action="">
                     <div class="form-group">
-                        <label for="username">Username</label>
+                        <label for="username">Email / Username</label>
                         <div class="input-group">
                             <i class="fas fa-user"></i>
                             <input type="text" id="username" name="username" class="form-control" 
-                                   placeholder="Masukkan username Anda" required autocomplete="off">
+                                   placeholder="Masukkan username Anda" value="<?php echo htmlspecialchars($saved_username); ?>" required autocomplete="off">
                         </div>
                         <div class="input-hint" id="hint-username">
                             <i class="fas fa-lightbulb"></i> Saran: <strong>admin</strong> atau <strong>user</strong>
@@ -562,19 +642,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <i class="fas fa-lock"></i>
                             <input type="password" id="password" name="password" class="form-control" 
                                    placeholder="Masukkan password Anda" required>
+                            <i class="fas fa-eye toggle-password" id="togglePassword" title="Show/Hide Password"></i>
                         </div>
                         <div class="input-hint" id="hint-password">
-                            <i class="fas fa-lightbulb"></i> Saran: <strong>123456</strong>
+                            <i class="fas fa-lightbulb"></i> Saran: <strong>12345
                         </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" name="remember_me" id="remember_me" <?php echo ($saved_username != '') ? 'checked' : ''; ?>>
+                            <span>Ingat Saya</span>
+                        </label>
+                        <a href="forgot_password.php" class="forgot-password">Lupa Password?</a>
                     </div>
                     
                     <button type="submit" class="btn-primary">
-                        <i class="fas fa-rocket"></i> Login System
+                        <i class="fas fa-rocket"></i> Login
                     </button>
                 </form>
                 
                 <div class="demo-info">
                     <p>&copy; <?php echo date('Y'); ?> PT. Sinergi Nusantara Integrasi</p>
+                    </p>
+                    <p style="margin: 5px 0 0 0; font-size: 10px; color: #aaa; letter-spacing: 0.5px;">
+                        Developed by <span style="color: #666;">Rahul Candra</span>
+                    </p>
+                </footer>
                 </div>
             </div>
         </div>
@@ -582,36 +676,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            // --- FITUR AUTO HIDE ALERT LOGOUT (3 DETIK) ---
+            const logoutAlert = document.getElementById('alert-logout');
+            if (logoutAlert) {
+                setTimeout(function() {
+                    logoutAlert.style.opacity = '0';
+                    logoutAlert.style.transform = 'translateY(-10px)';
+
+                    setTimeout(function() {
+                        logoutAlert.style.display = 'none';
+                    }, 500); 
+
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }, 3000); // 3000 ms = 3 detik
+            }
+
             // --- Fitur Toggle Tema Gelap/Terang ---
             const themeToggleBtn = document.getElementById('theme-toggle');
             const themeIcon = themeToggleBtn.querySelector('i');
             const htmlElement = document.documentElement;
             
-            // Cek apakah ada preferensi tema tersimpan di local storage
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'light') {
                 htmlElement.setAttribute('data-theme', 'light');
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
             }
 
-            // Fungsi klik toggle
             themeToggleBtn.addEventListener('click', function() {
                 if (htmlElement.getAttribute('data-theme') === 'light') {
-                    // Pindah ke Dark Mode
                     htmlElement.removeAttribute('data-theme');
                     themeIcon.classList.replace('fa-sun', 'fa-moon');
                     localStorage.setItem('theme', 'dark');
                 } else {
-                    // Pindah ke Light Mode
                     htmlElement.setAttribute('data-theme', 'light');
                     themeIcon.classList.replace('fa-moon', 'fa-sun');
                     localStorage.setItem('theme', 'light');
                 }
             });
 
-            // --- Fitur Input Hint (Bawaan Anda) ---
-            const usernameInput = document.getElementById('username');
+            // --- Fitur Show/Hide Password ---
+            const togglePassword = document.getElementById('togglePassword');
             const passwordInput = document.getElementById('password');
+
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+
+            // --- Fitur Input Hint ---
+            const usernameInput = document.getElementById('username');
             const usernameHint = document.getElementById('hint-username');
             const passwordHint = document.getElementById('hint-password');
 
@@ -629,21 +745,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }, 300);
             }
 
-            usernameInput.addEventListener('focus', function() {
-                showHint(usernameHint);
-            });
-
-            usernameInput.addEventListener('blur', function() {
-                hideHint(usernameHint);
-            });
-
-            passwordInput.addEventListener('focus', function() {
-                showHint(passwordHint);
-            });
-
-            passwordInput.addEventListener('blur', function() {
-                hideHint(passwordHint);
-            });
+            usernameInput.addEventListener('focus', function() { showHint(usernameHint); });
+            usernameInput.addEventListener('blur', function() { hideHint(usernameHint); });
+            passwordInput.addEventListener('focus', function() { showHint(passwordHint); });
+            passwordInput.addEventListener('blur', function() { hideHint(passwordHint); });
             
             document.querySelectorAll('.input-hint strong').forEach(item => {
                 item.addEventListener('click', function(e) {

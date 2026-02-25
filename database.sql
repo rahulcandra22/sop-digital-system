@@ -58,8 +58,8 @@ CREATE TABLE `sop` (
 -- Password Admin: sinergi
 -- Password User: rahul
 INSERT INTO `users` (`id`, `username`, `password`, `role`, `nama_lengkap`, `created_at`) VALUES
-(1, 'sinergi@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Administrator', CURRENT_TIMESTAMP),
-(2, 'rahulcandra@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Rahul Candra', CURRENT_TIMESTAMP);
+(1, 'admin@sinergi.co.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Administrator', CURRENT_TIMESTAMP),
+(2, 'rahulcandra@sinergi.co.id', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Rahul Candra', CURRENT_TIMESTAMP);
 
 -- ============================================
 -- Sample Data: Categories
@@ -112,7 +112,7 @@ NULL, 1, CURRENT_TIMESTAMP);
 -- Notes for Password Reset
 -- ============================================
 -- To reset admin password to "admin":
--- UPDATE users SET password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' WHERE username = 'sinergi@gmail.com';
+-- UPDATE users SET password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' WHERE username = 'admin@sinergi.co.id';
 
 -- ============================================
 -- End of SQL File

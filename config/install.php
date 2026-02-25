@@ -79,7 +79,7 @@ if (mysqli_query($conn, $sql)) {
 // Insert default admin user (password: sinergi)
 $password_admin = password_hash('sinergi', PASSWORD_DEFAULT);
 $sql = "INSERT INTO users (username, password, role, nama_lengkap) VALUES 
-        ('sinergi@gmail.com', '$password_admin', 'admin', 'Administrator')
+        ('admin@sinergi.co.id', '$password_admin', 'admin', 'Administrator')
         ON DUPLICATE KEY UPDATE username=username";
 
 if (mysqli_query($conn, $sql)) {
@@ -91,7 +91,7 @@ if (mysqli_query($conn, $sql)) {
 // Insert default regular user (password: rahul)
 $password_user = password_hash('rahul', PASSWORD_DEFAULT);
 $sql = "INSERT INTO users (username, password, role, nama_lengkap) VALUES 
-        ('rahulcandra', '$password_user', 'user', 'Rahul Candra')
+        ('rahulcandra@sinergi.co.id', '$password_user', 'user', 'Rahul Candra')
         ON DUPLICATE KEY UPDATE username=username";
 
 if (mysqli_query($conn, $sql)) {
@@ -127,8 +127,8 @@ if (mysqli_query($conn, $sql)) {
 }
 
 echo "<br><strong>Installation completed!</strong><br>";
-echo "Admin Login: sinergi@gmail.com / sinergi<br>";
-echo "User Login: rahulcandra / rahul<br>";
+echo "Admin Login: admin@sinergi.co.id / sinergi<br>";
+echo "User Login: rahulcandra@sinergi.co.id / rahul<br>";
 echo "<br><a href='../index.php'>Go to Login Page</a>";
 
 mysqli_close($conn);

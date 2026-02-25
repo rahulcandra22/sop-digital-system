@@ -318,7 +318,6 @@ $sop = mysqli_fetch_assoc($result);
 
 <script>
     window.onload = function() {
-        // Beri jeda sedikit agar watermark dan CSS ter-load sempurna sebelum dialog print muncul
         setTimeout(function() {
             window.print();
         }, 800);
