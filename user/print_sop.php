@@ -38,7 +38,7 @@ $sop = mysqli_fetch_assoc($result);
         html, body {
             margin: 0;
             padding: 0;
-            background: #0f172a;
+            background: #e2e8f0;
             font-family: 'Inter', Arial, sans-serif;
             color: #1e293b;
         }
@@ -49,34 +49,26 @@ $sop = mysqli_fetch_assoc($result);
             width: 210mm;
             min-height: 297mm;
             margin: 40px auto;
-            padding: 20mm 20mm 25mm 20mm; /* Padding bawah lebih besar untuk footer */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            padding: 20mm 20mm 25mm 20mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             box-sizing: border-box;
             position: relative;
-            overflow: hidden; /* Untuk menjaga watermark tetap di dalam */
+            overflow: hidden;
         }
 
-        /* WATERMARK LOGO DI TENGAH KERTAS */
-        .paper-preview::before {
-            content: "";
-            position: absolute;
+        /* WATERMARK BARU (Akan berulang di tiap halaman saat dicetak) */
+        .watermark-img {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 400px;
-            height: 400px;
-            background-image: url('../assets/images/logo.png'); /* Pastikan path logo benar */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.04; /* Sangat transparan agar teks tetap terbaca */
+            opacity: 0.05;
             z-index: 0;
             pointer-events: none;
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact;
         }
 
-        /* Elemen z-index agar di atas watermark */
+        /* Elemen z-index agar teks tetap di atas watermark */
         .content-wrapper {
             position: relative;
             z-index: 1;
@@ -97,7 +89,7 @@ $sop = mysqli_fetch_assoc($result);
         }
         
         .iso-table th, .iso-table td {
-            border: 1.5px solid #1e293b; /* Garis lebih tegas */
+            border: 1.5px solid #1e293b;
             padding: 8px 12px;
             vertical-align: middle;
         }
@@ -170,7 +162,7 @@ $sop = mysqli_fetch_assoc($result);
             width: 100%;
             border-collapse: collapse;
             margin-top: 30px;
-            page-break-inside: avoid; /* Anti terpotong halaman */
+            page-break-inside: avoid;
         }
 
         .signature-block td {
@@ -182,7 +174,10 @@ $sop = mysqli_fetch_assoc($result);
         }
 
         .sign-space {
-            height: 90px; /* Ruang lebih lega untuk TTD */
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .sign-name {
@@ -208,7 +203,9 @@ $sop = mysqli_fetch_assoc($result);
 
         /* Pengaturan Cetak Asli (Print Mode) */
         @media print {
-            body { background: none; }
+            html, body { 
+                background: #ffffff !important; 
+            }
             .paper-preview {
                 margin: 0;
                 padding: 0;
@@ -224,12 +221,6 @@ $sop = mysqli_fetch_assoc($result);
                 print-color-adjust: exact;
             }
 
-            .paper-preview::before {
-                opacity: 0.05 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
             .doc-footer {
                 position: fixed;
                 bottom: 0;
@@ -240,6 +231,8 @@ $sop = mysqli_fetch_assoc($result);
     </style>
 </head>
 <body>
+
+<img src="../assets/images/logo.png" class="watermark-img" alt="Watermark">
 
 <div class="paper-preview">
     <div class="content-wrapper">
@@ -301,7 +294,9 @@ $sop = mysqli_fetch_assoc($result);
                 </td>
                 <td>
                     <p>Mengetahui & Disetujui Oleh,</p>
-                    <div class="sign-space"></div>
+                    <div class="sign-space">
+                        <img src="../assets/images/ttd.png" alt="Tanda Tangan Direktur" style="max-height: 80px; max-width: 180px; object-fit: contain;">
+                    </div>
                     <div class="sign-name">Nugroho Hermanto</div>
                     <div class="text-sm" style="color:#64748b;">Direktur</div>
                 </td>

@@ -45,8 +45,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         
         if ($row) {
             echo '<form method="POST" action="sop.php" enctype="multipart/form-data"><input type="hidden" name="action" value="edit"><input type="hidden" name="id" value="' . $row['id'] . '">';
-            echo '<div class="form-group"><label>Judul SOP *</label><input type="text" name="judul" class="form-control" value="' . htmlspecialchars($row['judul']) . '" required></div>';
-            echo '<div class="form-group"><label>Kategori *</label><select name="kategori_id" class="form-control" required>';
+            echo '<div class="form-group"><label>Judul SOP</label><input type="text" name="judul" class="form-control" value="' . htmlspecialchars($row['judul']) . '" required></div>';
+            echo '<div class="form-group"><label>Kategori</label><select name="kategori_id" class="form-control" required>';
             
             while ($cat = mysqli_fetch_assoc($rcat)) {
                 $sel = ($cat['id'] == $row['kategori_id']) ? 'selected' : '';
@@ -55,8 +55,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             
             echo '</select></div>';
             echo '<div class="form-group"><label>Deskripsi</label><textarea name="deskripsi" class="form-control" rows="3">' . htmlspecialchars($row['deskripsi']) . '</textarea></div>';
-            echo '<div class="form-group"><label>Langkah-langkah *</label><textarea name="langkah_kerja" class="form-control" rows="8" required>' . htmlspecialchars($row['langkah_kerja']) . '</textarea></div>';
-            echo '<div class="form-group"><label>Status *</label><select name="status" class="form-control">';
+            echo '<div class="form-group"><label>Langkah-langkah</label><textarea name="langkah_kerja" class="form-control" rows="8" required>' . htmlspecialchars($row['langkah_kerja']) . '</textarea></div>';
+            echo '<div class="form-group"><label>Status</label><select name="status" class="form-control">';
             
             foreach (['Draft', 'Review', 'Disetujui', 'Revisi'] as $st) {
                 $sel = ($row['status'] == $st) ? 'selected' : '';
