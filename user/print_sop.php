@@ -20,6 +20,17 @@ if (mysqli_num_rows($result) == 0) {
 }
 
 $sop = mysqli_fetch_assoc($result);
+
+$print_by = isset($_SESSION['nama_lengkap']) ? $_SESSION['nama_lengkap'] : (isset($_SESSION['username']) ? $_SESSION['username'] : 'Administrator');
+
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$path = rtrim(dirname($_SERVER['REQUEST_URI']), '/'); 
+ 
+$sop_online_url = $protocol . "://" . $host . $path . "/view_sop.php?id=" . $id;
+
+// API untuk men-generate gambar QR Code 
+$qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=" . urlencode($sop_online_url);
 ?>
 
 <!DOCTYPE html>
@@ -29,7 +40,7 @@ $sop = mysqli_fetch_assoc($result);
     <title>Cetak SOP - <?php echo htmlspecialchars($sop['judul']); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Pengaturan Kertas & Layar */
+
         @page {
             size: A4;
             margin: 15mm 20mm;
@@ -56,7 +67,7 @@ $sop = mysqli_fetch_assoc($result);
             overflow: hidden;
         }
 
-        /* WATERMARK BARU (Akan berulang di tiap halaman saat dicetak) */
+        /* WATERMARK */
         .watermark-img {
             position: fixed;
             top: 50%;
@@ -68,7 +79,7 @@ $sop = mysqli_fetch_assoc($result);
             pointer-events: none;
         }
 
-        /* Elemen z-index agar teks tetap di atas watermark */
+        /* Elemen z-index */
         .content-wrapper {
             position: relative;
             z-index: 1;
@@ -101,7 +112,7 @@ $sop = mysqli_fetch_assoc($result);
             print-color-adjust: exact;
         }
 
-        /* Cap Dokumen Terkendali */
+        /* Cap Dokumen */
         .status-badge {
             display: inline-block;
             border: 1px solid #1e293b;
@@ -120,7 +131,7 @@ $sop = mysqli_fetch_assoc($result);
             object-fit: contain;
         }
 
-        /* Judul SOP Besar */
+        /* Judul SOP */
         .doc-title {
             font-size: 19px;
             text-transform: uppercase;
@@ -157,7 +168,11 @@ $sop = mysqli_fetch_assoc($result);
             text-align: justify;
         }
 
-        /* Blok Tanda Tangan */
+        tr, td, .content-section, .signature-block {
+            page-break-inside: avoid;
+        }
+
+        /* Blok Tanda Tangan & QR Code */
         .signature-block {
             width: 100%;
             border-collapse: collapse;
@@ -166,11 +181,12 @@ $sop = mysqli_fetch_assoc($result);
         }
 
         .signature-block td {
-            width: 50%;
+            width: 33.33%; 
             text-align: center;
             padding: 10px;
             font-size: 13px;
             border: none;
+            vertical-align: top;
         }
 
         .sign-space {
@@ -178,6 +194,7 @@ $sop = mysqli_fetch_assoc($result);
             display: flex;
             justify-content: center;
             align-items: center;
+            margin: 5px 0;
         }
 
         .sign-name {
@@ -187,18 +204,23 @@ $sop = mysqli_fetch_assoc($result);
             font-size: 14px;
         }
 
-        /* Footer Dokumen (Hanya muncul di paling bawah kertas) */
+        /* FOOTER DOKUMEN */
         .doc-footer {
-            position: absolute;
-            bottom: 10mm;
-            left: 20mm;
-            right: 20mm;
+            margin-top: 40px;
             border-top: 1px solid #cbd5e1;
-            padding-top: 5px;
+            padding-top: 10px;
             font-size: 10px;
             color: #64748b;
-            display: flex;
-            justify-content: space-between;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .doc-footer .warning-text {
+            font-weight: 700;
+            color: #dc2626; 
+            text-transform: uppercase;
+            font-size: 11px;
+            margin-bottom: 4px;
         }
 
         /* Pengaturan Cetak Asli (Print Mode) */
@@ -220,12 +242,9 @@ $sop = mysqli_fetch_assoc($result);
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-
-            .doc-footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
+            
+            .doc-footer .warning-text {
+                color: #000000 !important; 
             }
         }
     </style>
@@ -295,27 +314,37 @@ $sop = mysqli_fetch_assoc($result);
                 <td>
                     <p>Mengetahui & Disetujui Oleh,</p>
                     <div class="sign-space">
-                        <img src="../assets/images/ttd.png" alt="Tanda Tangan Direktur" style="max-height: 80px; max-width: 180px; object-fit: contain;">
+                        <img src="../assets/images/ttd.png" alt="Tanda Tangan" style="max-height: 80px; max-width: 150px; object-fit: contain;" onerror="this.style.display='none'">
                     </div>
                     <div class="sign-name">Nugroho Hermanto</div>
                     <div class="text-sm" style="color:#64748b;">Direktur</div>
                 </td>
+                <td>
+                    <p>Verifikasi Dokumen</p>
+                    <div class="sign-space">
+                        <img src="<?php echo $qr_api_url; ?>" alt="QR Code Verifikasi" style="height: 75px; width: 75px;">
+                    </div>
+                    <div class="text-sm" style="color:#64748b;">Scan QR untuk cek validitas<br>secara online</div>
+                </td>
             </tr>
         </table>
 
-    </div>
-    
-    <div class="doc-footer">
-        <div>SOP Digital System &copy; <?php echo date('Y'); ?></div>
-        <div>Dicetak pada: <?php echo date('d M Y, H:i'); ?> WIB</div>
+        <div class="doc-footer">
+            <div class="warning-text">PERINGATAN: DOKUMEN FISIK ADALAH SALINAN TIDAK TERKENDALI (UNCONTROLLED COPY)</div>
+            SOP Digital System &copy; <?php echo date('Y'); ?> | 
+            Dicetak oleh: <strong><?php echo htmlspecialchars($print_by); ?></strong> | 
+            Waktu Cetak: <?php echo date('d M Y, H:i'); ?> WIB
+        </div>
+
     </div>
 </div>
 
 <script>
+    // Jeda 1 detik agar gambar QR Code
     window.onload = function() {
         setTimeout(function() {
             window.print();
-        }, 800);
+        }, 1000);
     }
 </script>
 

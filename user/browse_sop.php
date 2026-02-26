@@ -3,10 +3,50 @@ require_once '../config/database.php';
 require_once '../includes/session.php';
 requireUser();
 
+$user_id = getUserId();
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'add') {
+    $judul = mysqli_real_escape_string($conn, trim($_POST['judul']));
+    $kid   = (int)$_POST['kategori_id'];
+    $desk  = mysqli_real_escape_string($conn, trim($_POST['deskripsi']));
+    $lk    = mysqli_real_escape_string($conn, trim($_POST['langkah_kerja']));
+    
+    $st    = 'Review';
+    $cb    = $user_id;
+    $fa    = '';
+    
+    if (empty($judul) || empty($lk) || $kid == 0) {
+        setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
+        header('Location: browse_sop.php');
+        exit();
+    }
+    
+    if (isset($_FILES['file_attachment']) && $_FILES['file_attachment']['error'] == 0) {
+        $dir = "../assets/uploads/";
+        $ext = pathinfo($_FILES['file_attachment']['name'], PATHINFO_EXTENSION);
+        $fn  = time() . '_' . uniqid() . '.' . $ext;
+        
+        if (move_uploaded_file($_FILES['file_attachment']['tmp_name'], $dir . $fn)) {
+            $fa = $fn;
+        }
+    }
+    
+    $insert_sql = "INSERT INTO sop (judul, kategori_id, deskripsi, langkah_kerja, file_attachment, created_by, status) 
+                   VALUES ('$judul', $kid, '$desk', '$lk', '$fa', $cb, '$st')";
+                   
+    if (mysqli_query($conn, $insert_sql)) {
+        setFlashMessage('success', 'SOP berhasil diajukan dan sedang menunggu Review Admin!');
+    } else {
+        setFlashMessage('danger', 'Gagal mengajukan SOP!');
+    }
+    header('Location: browse_sop.php');
+    exit();
+}
+
 $kategori_filter = isset($_GET['kategori']) ? $_GET['kategori'] : '';
 $search          = isset($_GET['search']) ? $_GET['search'] : '';
 
-$where = "WHERE s.status = 'Disetujui'";
+$where = "WHERE (s.status = 'Disetujui' OR s.created_by = $user_id)";
 
 if ($kategori_filter) { 
     $where .= " AND s.kategori_id = " . intval($kategori_filter); 
@@ -26,6 +66,8 @@ $result     = mysqli_query($conn, $sql);
 
 $sql_cat    = "SELECT * FROM categories ORDER BY nama_kategori ASC";
 $result_cat = mysqli_query($conn, $sql_cat);
+
+$flash = getFlashMessage();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -40,34 +82,23 @@ $result_cat = mysqli_query($conn, $sql_cat);
         :root {
             --bg: #020617; --sb: rgba(15, 23, 42, .97); --tb: rgba(15, 23, 42, .87); --cb: rgba(30, 41, 59, .75);
             --gb: rgba(255, 255, 255, .08); --tm: #f8fafc; --tmut: #94a3b8; --tsub: #cbd5e1; --ibg: rgba(0, 0, 0, .30);
-            --lf: brightness(0) invert(1); --lbg: rgba(239, 68, 68, .18); --lc: #fca5a5; --lbor: rgba(239, 68, 68, .30);
+            --mbg: #1e293b; --mbor: rgba(255, 255, 255, .10); --lf: brightness(0) invert(1);
+            --lbg: rgba(239, 68, 68, .18); --lc: #fca5a5; --lbor: rgba(239, 68, 68, .30);
             --sl: #94a3b8; --sa: rgba(59, 130, 246, .12); --togbg: rgba(30, 41, 59, .80); --togc: #94a3b8;
         }
         [data-theme="light"] {
             --bg: #f0f4f8; --sb: rgba(255, 255, 255, .98); --tb: rgba(255, 255, 255, .96); --cb: rgba(255, 255, 255, .95);
             --gb: rgba(0, 0, 0, .09); --tm: #0f172a; --tmut: #64748b; --tsub: #334155; --ibg: rgba(255, 255, 255, .95);
-            --lf: none; --lbg: rgba(239, 68, 68, .07); --lc: #dc2626; --lbor: rgba(239, 68, 68, .18);
+            --mbg: #ffffff; --mbor: rgba(0, 0, 0, .10); --lf: none; 
+            --lbg: rgba(239, 68, 68, .07); --lc: #dc2626; --lbor: rgba(239, 68, 68, .18);
             --sl: #64748b; --sa: rgba(59, 130, 246, .08); --togbg: rgba(241, 245, 249, .95); --togc: #475569;
         }
         
         *, *::before, *::after { box-sizing: border-box; }
-        body { 
-            font-family: 'Outfit', sans-serif !important; 
-            background-color: var(--bg) !important; 
-            color: var(--tm) !important; 
-            margin: 0; 
-            overflow-x: hidden; 
-            transition: background-color .35s, color .35s; 
-        }
-        body::before { 
-            content: ''; 
-            position: fixed; 
-            inset: 0; 
-            z-index: -1; 
-            background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, .07), transparent 30%); 
-            pointer-events: none; 
-        }
+        body { font-family: 'Outfit', sans-serif !important; background-color: var(--bg) !important; color: var(--tm) !important; margin: 0; overflow-x: hidden; transition: background-color .35s, color .35s; }
+        body::before { content: ''; position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, .07), transparent 30%); pointer-events: none; }
         
+        /* CSS Layout Dashboard (Sidebar & Topbar) */
         .sidebar { background: var(--sb) !important; border-right: 1px solid var(--gb) !important; backdrop-filter: blur(12px); }
         .sidebar-header { border-bottom: 1px solid var(--gb) !important; padding: 20px; }
         .sidebar-header h3 { color: var(--tm) !important; margin: 4px 0 2px; font-size: 16px; font-weight: 700; }
@@ -91,32 +122,51 @@ $result_cat = mysqli_query($conn, $sql_cat);
         .user-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important; color: #fff !important; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
         .btn-logout { padding: 8px 18px; background: var(--lbg) !important; color: var(--lc) !important; border: 1px solid var(--lbor) !important; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
         
+        /* Layout Konten Utama */
         .content-wrapper { padding: 24px; }
         .card { background: var(--cb) !important; border: 1px solid var(--gb) !important; border-radius: 16px !important; box-shadow: 0 4px 24px rgba(0, 0, 0, .10); margin-bottom: 24px; }
-        .card-header { padding: 18px 22px; border-bottom: 1px solid var(--gb); }
+        .card-header { padding: 18px 22px; border-bottom: 1px solid var(--gb); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .card-header h3 { color: var(--tm) !important; margin: 0; font-size: 16px; font-weight: 600; }
         .card-body { padding: 22px; }
 
         .form-control { width: 100%; padding: 11px 14px; background: var(--ibg) !important; border: 1px solid var(--gb) !important; border-radius: 8px; color: var(--tm) !important; font-family: 'Outfit', sans-serif; font-size: 14px; transition: .3s; }
         .form-control:focus { outline: none; border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
+        .form-group { margin-bottom: 15px; }
         .form-group label { color: var(--tsub) !important; margin-bottom: 8px; display: block; font-weight: 600; font-size: 13px; }
 
+        /* Tombol & Alerts */
         .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px !important; border: none !important; color: #fff !important; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; transition: .25s; }
         .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
         .btn-success { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 4px 12px rgba(16, 185, 129, .3); }
         .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626) !important; box-shadow: 0 4px 12px rgba(239, 68, 68, .3); }
         .btn-info { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, .3); }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: var(--sa); color: #3b82f6; border: 1px solid rgba(59, 130, 246, .3); }
+        
+        .alert { border-radius: 10px !important; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .alert-success { background: rgba(16, 185, 129, .12) !important; color: #059669 !important; border: 1px solid rgba(16, 185, 129, .25) !important; }
+        .alert-danger { background: rgba(239, 68, 68, .12) !important; color: #dc2626 !important; border: 1px solid rgba(239, 68, 68, .25) !important; }
 
+        /* Card SOP */
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: var(--sa); color: #3b82f6; border: 1px solid rgba(59, 130, 246, .3); }
+        .s-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; float: right; }
+        
         .sop-card { background: var(--cb); border: 1px solid var(--gb); border-radius: 12px; padding: 20px; transition: all .3s ease; position: relative; overflow: hidden; }
         .sop-card:hover { border-color: #3b82f6; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, .1); }
-        .sop-card h4 { color: var(--tm); margin-bottom: 10px; font-size: 16px; font-weight: 600; }
+        .sop-card h4 { color: var(--tm); margin-bottom: 10px; font-size: 16px; font-weight: 600; padding-right: 60px;}
         .sop-card p { color: var(--tsub); font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
         .sop-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid var(--gb); }
         .sop-meta small { color: var(--tmut); }
         
         .empty-state { text-align: center; padding: 60px 20px; color: var(--tmut); }
         .empty-state h3 { color: var(--tm); margin-top: 10px; }
+
+        /* CSS Modal Tambah SOP */
+        .modal { display: none; position: fixed; z-index: 9999; inset: 0; background: rgba(0, 0, 0, .65); backdrop-filter: blur(6px); }
+        .modal-content { background: var(--mbg) !important; border: 1px solid var(--mbor) !important; border-radius: 16px; width: 90%; max-width: 700px; margin: 3% auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .4); max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--mbor); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--mbg); z-index: 2; }
+        .modal-header h3 { color: var(--tm) !important; margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .close { color: var(--tmut); font-size: 26px; cursor: pointer; line-height: 1; }
+        .close:hover { color: var(--tm); }
+        .modal-body { padding: 24px; color: var(--tsub) !important; }
     </style>
 </head>
 <body>
@@ -153,9 +203,18 @@ $result_cat = mysqli_query($conn, $sql_cat);
             </div>
             
             <div class="content-wrapper">
+                
+                <?php if ($flash): ?>
+                    <div class="alert alert-<?php echo $flash['type']; ?>">
+                        <i class="fas <?php echo $flash['type'] == 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'; ?>"></i> 
+                        <?php echo $flash['message']; ?>
+                    </div>
+                <?php endif; ?>
+
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-filter"></i> Filter Pencarian</h3>
+                        <button onclick="openModal('addModal')" class="btn btn-success"><i class="fas fa-plus"></i> Ajukan SOP Baru</button>
                     </div>
                     <div class="card-body">
                         <form method="GET" action="" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
@@ -167,7 +226,10 @@ $result_cat = mysqli_query($conn, $sql_cat);
                                 <label>Kategori</label>
                                 <select name="kategori" class="form-control">
                                     <option value="">Semua Kategori</option>
-                                    <?php while ($cat = mysqli_fetch_assoc($result_cat)): ?>
+                                    <?php 
+                                    mysqli_data_seek($result_cat, 0); // reset pointer
+                                    while ($cat = mysqli_fetch_assoc($result_cat)): 
+                                    ?>
                                         <option value="<?php echo $cat['id']; ?>" <?php echo ($kategori_filter == $cat['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($cat['nama_kategori']); ?>
                                         </option>
@@ -175,7 +237,7 @@ $result_cat = mysqli_query($conn, $sql_cat);
                                 </select>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                <button type="submit" class="btn btn-success"><i class="fas fa-search"></i> Cari</button>
+                                <button type="submit" class="btn btn-info"><i class="fas fa-search"></i> Cari</button>
                                 <a href="browse_sop.php" class="btn btn-danger"><i class="fas fa-redo"></i> Reset</a>
                             </div>
                         </form>
@@ -188,10 +250,22 @@ $result_cat = mysqli_query($conn, $sql_cat);
                     </div>
                     <div class="card-body">
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
-                            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                            <?php 
+                            $ss = [
+                                'Draft'     => 'background:rgba(71,85,105,.25);color:#94a3b8;border:1px solid rgba(71,85,105,.4)',
+                                'Review'    => 'background:rgba(245,158,11,.20);color:#f59e0b;border:1px solid rgba(245,158,11,.4)',
+                                'Disetujui' => 'background:rgba(16,185,129,.20);color:#10b981;border:1px solid rgba(16,185,129,.4)',
+                                'Revisi'    => 'background:rgba(239,68,68,.20);color:#ef4444;border:1px solid rgba(239,68,68,.4)'
+                            ];
+
+                            while ($row = mysqli_fetch_assoc($result)): 
+                                $s = trim($row['status']);
+                                $style = $ss[$s] ?? $ss['Revisi'];
+                            ?>
                                 <div class="sop-card">
                                     <div style="margin-bottom: 10px;">
                                         <span class="badge"><?php echo htmlspecialchars($row['nama_kategori']); ?></span>
+                                        <span class="s-badge" style="<?php echo $style; ?>"><?php echo htmlspecialchars($s); ?></span>
                                     </div>
                                     <h4><?php echo htmlspecialchars($row['judul']); ?></h4>
                                     <p><?php echo substr(htmlspecialchars($row['deskripsi']), 0, 100) . '...'; ?></p>
@@ -207,7 +281,7 @@ $result_cat = mysqli_query($conn, $sql_cat);
                             <div class="empty-state">
                                 <i class="fas fa-inbox" style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;"></i>
                                 <h3>Tidak ada SOP ditemukan</h3>
-                                <p>Coba ubah kata kunci atau filter pencarian Anda</p>
+                                <p>Belum ada SOP yang Disetujui atau Anda belum pernah mengajukan SOP.</p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -216,8 +290,62 @@ $result_cat = mysqli_query($conn, $sql_cat);
         </main>
     </div>
 
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i>Ajukan SOP Baru</h3>
+                <span class="close" onclick="closeModal('addModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="add">
+                    
+                    <div class="form-group">
+                        <label>Judul SOP</label>
+                        <input type="text" name="judul" class="form-control" required placeholder="Contoh: Prosedur Cuti Tahunan">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select name="kategori_id" class="form-control" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            <?php 
+                            mysqli_data_seek($result_cat, 0);
+                            while ($cat = mysqli_fetch_assoc($result_cat)): 
+                            ?>
+                                <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nama_kategori']); ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Deskripsi Singkat</label>
+                        <textarea name="deskripsi" class="form-control" rows="3" placeholder="Jelaskan secara singkat tujuan SOP ini..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Langkah-langkah Kerja</label>
+                        <textarea name="langkah_kerja" class="form-control" rows="6" required placeholder="Tulis instruksi langkah demi langkah..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>File Lampiran (Opsional)</label>
+                        <input type="file" name="file_attachment" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg">
+                        <small style="color:var(--tmut); display:block; margin-top:5px;">Dokumen pendukung (PDF/Word/Excel/Gambar)</small>
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-paper-plane"></i> Ajukan SOP</button>
+                        <button type="button" onclick="closeModal('addModal')" class="btn btn-danger"><i class="fas fa-times"></i> Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="../assets/js/script.js"></script>
     <script>
+
         (function() {
             if (localStorage.getItem('theme') === 'light') {
                 document.documentElement.setAttribute('data-theme', 'light');
@@ -231,7 +359,6 @@ $result_cat = mysqli_query($conn, $sql_cat);
             function sync() {
                 icon.className = document.documentElement.getAttribute('data-theme') === 'light' ? 'fas fa-sun' : 'fas fa-moon';
             }
-            
             sync();
             
             if (btn) {
@@ -248,6 +375,20 @@ $result_cat = mysqli_query($conn, $sql_cat);
                 });
             }
         });
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('addModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
 </body>
 </html>
