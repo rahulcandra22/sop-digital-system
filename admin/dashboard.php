@@ -6,6 +6,11 @@ requireAdmin();
 $total_sop      = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as t FROM sop"))['t'];
 $total_kategori = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as t FROM categories"))['t'];
 $total_user     = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as t FROM users WHERE role='user'"))['t'];
+
+// QUERY NOTIFIKASI: Menghitung SOP dengan status Draft, Review, atau Revisi
+$notif_query = mysqli_query($conn, "SELECT COUNT(*) as t FROM sop WHERE status IN ('Draft', 'Review', 'Revisi')");
+$total_notif = mysqli_fetch_assoc($notif_query)['t'];
+
 $flash          = getFlashMessage();
 ?>
 
@@ -59,15 +64,24 @@ $flash          = getFlashMessage();
         .main-content { background: transparent !important; }
         .topbar { background: var(--tb) !important; border-bottom: 1px solid var(--gb) !important; backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; }
         .topbar-left h2 { color: var(--tm) !important; font-size: 20px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
-        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
 
-        /* === THEME TOGGLE === */
-        #theme-toggle-btn { all: unset; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; background: var(--togbg) !important; border: 1px solid var(--gb) !important; color: var(--togc) !important; display: flex !important; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); flex-shrink: 0; transition: all .25s; }
-        #theme-toggle-btn:hover { color: #3b82f6 !important; transform: scale(1.1); }
-        #theme-toggle-btn i { pointer-events: none; color: inherit !important; font-size: 17px; }
+        /* === TOPBAR ACTIONS (Theme Toggle & Notif) === */
+        .top-action-btn { all: unset; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; background: var(--togbg) !important; border: 1px solid var(--gb) !important; color: var(--togc) !important; display: flex !important; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); flex-shrink: 0; transition: all .25s; text-decoration: none; position: relative; }
+        .top-action-btn:hover { color: #3b82f6 !important; transform: scale(1.1); }
+        .top-action-btn i { pointer-events: none; color: inherit !important; font-size: 17px; }
+        
+        /* Badge Notifikasi Merah */
+        .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; height: 18px; min-width: 18px; padding: 0 5px; border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--tb); box-sizing: border-box; animation: pulse-red 2s infinite; }
+        
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
 
         /* === USER / LOGOUT === */
-        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-info { display: flex; align-items: center; gap: 10px; margin-left: 5px; border-left: 1px solid var(--gb); padding-left: 15px; }
         .user-info strong { color: var(--tm) !important; font-size: 14px; display: block; }
         .user-info p { color: var(--tmut) !important; margin: 0; font-size: 11px; }
         .user-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important; color: #fff !important; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
@@ -154,9 +168,18 @@ $flash          = getFlashMessage();
                 <h2><i class="fas fa-chart-line" style="color:#3b82f6"></i> Dashboard</h2>
             </div>
             <div class="topbar-right">
-                <button type="button" id="theme-toggle-btn" title="Ganti Tema">
+                
+                <a href="sop.php" class="top-action-btn" title="Lihat SOP Menunggu Review">
+                    <i class="fas fa-bell"></i>
+                    <?php if ($total_notif > 0): ?>
+                        <span class="notif-badge"><?php echo $total_notif; ?></span>
+                    <?php endif; ?>
+                </a>
+
+                <button type="button" class="top-action-btn" id="theme-toggle-btn" title="Ganti Tema">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
+                
                 <div class="user-info">
                     <div class="user-avatar"><?php echo strtoupper(substr(getNamaLengkap(), 0, 1)); ?></div>
                     <div>

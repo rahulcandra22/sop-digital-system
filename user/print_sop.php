@@ -21,6 +21,224 @@ if (mysqli_num_rows($result) == 0) {
 
 $sop = mysqli_fetch_assoc($result);
 
+// =========================================================================
+// PROTEKSI: Cek Status SOP. Hanya boleh dicetak jika statusnya "Disetujui"
+// =========================================================================
+if (strtolower(trim($sop['status'])) !== 'disetujui') {
+    $status_text = htmlspecialchars($sop['status']);
+    
+    // Tampilan UI "Dokumen Terbatas" 
+    die("
+    <!DOCTYPE html>
+    <html lang='id'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <meta name='color-scheme' content='light'>
+        <title>Dokumen Terbatas - SOP Digital</title>
+        <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap' rel='stylesheet'>
+        <style>
+            /* CSS Variables untuk Light Mode (Sangat Terang & Bersih) */
+            :root {
+                --bg-body: #f3f4f6;
+                --bg-card: #ffffff;
+                --text-primary: #111827;
+                --text-secondary: #4b5563;
+                --border-color: #e5e7eb;
+                --accent-color: #2563eb;
+                --icon-bg: #eff6ff;
+                --icon-color: #2563eb;
+                --status-box-bg: #f9fafb;
+                --badge-bg: #fef3c7;
+                --badge-text: #92400e;
+                --btn-bg: #2563eb; 
+                --btn-text: #ffffff;
+                --btn-hover: #1d4ed8;
+                --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.06);
+            }
+
+            body {
+                background-color: var(--bg-body);
+                font-family: 'Inter', sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                color: var(--text-primary);
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            .corporate-card {
+                background: var(--bg-card);
+                width: 100%;
+                max-width: 460px;
+                padding: 48px 40px;
+                border-radius: 16px;
+                box-shadow: var(--shadow-card);
+                text-align: center;
+                border: 1px solid var(--border-color);
+                box-sizing: border-box;
+                position: relative;
+                overflow: hidden;
+                transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .corporate-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--accent-color);
+            }
+
+            .icon-container {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                background: var(--icon-bg);
+                color: var(--icon-color);
+                margin-bottom: 24px;
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            .icon-container svg { width: 32px; height: 32px; }
+
+            h1 {
+                font-size: 22px;
+                font-weight: 700;
+                margin: 0 0 12px 0;
+                letter-spacing: -0.02em;
+            }
+
+            p.desc {
+                font-size: 15px;
+                line-height: 1.6;
+                color: var(--text-secondary);
+                margin: 0 0 32px 0;
+                transition: color 0.3s ease;
+            }
+
+            .status-box {
+                background: var(--status-box-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 32px;
+                text-align: left;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                transition: all 0.3s ease;
+            }
+
+            .status-left { display: flex; flex-direction: column; }
+
+            .status-title {
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-secondary);
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+
+            .status-desc { font-size: 13px; font-weight: 500; }
+
+            .status-value {
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                padding: 6px 14px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                transition: all 0.3s ease;
+            }
+
+            .btn-corporate {
+                background: var(--btn-bg);
+                color: var(--btn-text);
+                border: none;
+                padding: 14px 24px;
+                font-size: 14px;
+                font-weight: 600;
+                border-radius: 8px;
+                cursor: pointer;
+                width: 100%;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .btn-corporate:hover {
+                background: var(--btn-hover);
+                transform: translateY(-1px);
+            }
+
+            .footer-text {
+                margin-top: 32px;
+                font-size: 12px;
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='corporate-card'>
+            <div class='icon-container'>
+                <svg fill='none' stroke='currentColor' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'></path>
+                </svg>
+            </div>
+            
+            <h1>Akses Cetak Terkunci</h1>
+            <p class='desc'>Dokumen SOP ini belum melewati tahap otorisasi final dan tidak dapat dicetak.</p>
+            
+            <div class='status-box'>
+                <div class='status-left'>
+                    <span class='status-title'>Status Dokumen</span>
+                    <span class='status-desc'>Menunggu Persetujuan</span>
+                </div>
+                <div class='status-value'>{$status_text}</div>
+            </div>
+            
+            <button class='btn-corporate' onclick='goBack()'>
+                <svg width='18' height='18' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'></path></svg>
+                Tutup & Kembali
+            </button>
+            
+            <div class='footer-text'>
+                &copy; " . date('Y') . " SOP Digital System - PT. Sinergi Nusantara Integrasi
+            </div>
+        </div>
+
+        <script>
+            function goBack() {
+                if (document.referrer && document.referrer.indexOf(window.location.hostname) !== -1) {
+                    window.history.back();
+                } else {
+                    window.close();
+                    setTimeout(function() {
+                        window.location.href = '../index.php'; 
+                    }, 250);
+                }
+            }
+        </script>
+    </body>
+    </html>
+    ");
+}
+// =========================================================================
+
 $print_by = isset($_SESSION['nama_lengkap']) ? $_SESSION['nama_lengkap'] : (isset($_SESSION['username']) ? $_SESSION['username'] : 'Administrator');
 
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
@@ -28,8 +246,6 @@ $host = $_SERVER['HTTP_HOST'];
 $path = rtrim(dirname($_SERVER['REQUEST_URI']), '/'); 
  
 $sop_online_url = $protocol . "://" . $host . $path . "/view_sop.php?id=" . $id;
-
-// API untuk men-generate gambar QR Code 
 $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=" . urlencode($sop_online_url);
 ?>
 
@@ -37,10 +253,10 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name='color-scheme' content='light'>
     <title>Cetak SOP - <?php echo htmlspecialchars($sop['judul']); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-
         @page {
             size: A4;
             margin: 15mm 20mm;
@@ -49,14 +265,15 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
         html, body {
             margin: 0;
             padding: 0;
-            background: #e2e8f0;
+            background: #e2e8f0; /* Terang secara default */
             font-family: 'Inter', Arial, sans-serif;
             color: #1e293b;
+            transition: background 0.3s ease;
         }
 
-        /* Preview di Layar Monitor */
+        /* Kertas Print (Harus selalu putih murni) */
         .paper-preview {
-            background: #ffffff;
+            background: #ffffff !important;
             width: 210mm;
             min-height: 297mm;
             margin: 40px auto;
@@ -65,6 +282,7 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             box-sizing: border-box;
             position: relative;
             overflow: hidden;
+            color: #000000 !important; /* Memastikan font di atas kertas selalu hitam */
         }
 
         /* WATERMARK */
@@ -79,19 +297,12 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             pointer-events: none;
         }
 
-        /* Elemen z-index */
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Tipografi Dasar */
+        .content-wrapper { position: relative; z-index: 1; }
         h1, h2, h3, p { margin: 0; }
         .text-center { text-align: center; }
         .text-bold { font-weight: 700; }
         .text-sm { font-size: 11px; }
         
-        /* Tabel Utama ISO Style */
         .iso-table {
             width: 100%;
             border-collapse: collapse;
@@ -112,8 +323,7 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             print-color-adjust: exact;
         }
 
-        /* Cap Dokumen */
-        .status-badge {
+        .status-badge-doc {
             display: inline-block;
             border: 1px solid #1e293b;
             padding: 2px 8px;
@@ -124,27 +334,10 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             color: #1e293b;
         }
 
-        /* Logo Area */
-        .logo-container img {
-            max-width: 100px;
-            max-height: 60px;
-            object-fit: contain;
-        }
+        .logo-container img { max-width: 100px; max-height: 60px; object-fit: contain; }
+        .doc-title { font-size: 19px; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; font-weight: 800; }
 
-        /* Judul SOP */
-        .doc-title {
-            font-size: 19px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #0f172a;
-            font-weight: 800;
-        }
-
-        /* Konten Isi SOP */
-        .content-section {
-            margin-bottom: 25px;
-            page-break-inside: auto;
-        }
+        .content-section { margin-bottom: 25px; page-break-inside: auto; }
         
         .section-header {
             background-color: #f1f5f9 !important;
@@ -168,43 +361,13 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             text-align: justify;
         }
 
-        tr, td, .content-section, .signature-block {
-            page-break-inside: avoid;
-        }
+        tr, td, .content-section, .signature-block { page-break-inside: avoid; }
 
-        /* Blok Tanda Tangan & QR Code */
-        .signature-block {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-            page-break-inside: avoid;
-        }
+        .signature-block { width: 100%; border-collapse: collapse; margin-top: 30px; page-break-inside: avoid; }
+        .signature-block td { width: 33.33%; text-align: center; padding: 10px; font-size: 13px; border: none; vertical-align: top; }
+        .sign-space { height: 90px; display: flex; justify-content: center; align-items: center; margin: 5px 0; }
+        .sign-name { font-weight: 700; text-decoration: underline; margin-bottom: 4px; font-size: 14px; }
 
-        .signature-block td {
-            width: 33.33%; 
-            text-align: center;
-            padding: 10px;
-            font-size: 13px;
-            border: none;
-            vertical-align: top;
-        }
-
-        .sign-space {
-            height: 90px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 5px 0;
-        }
-
-        .sign-name {
-            font-weight: 700;
-            text-decoration: underline;
-            margin-bottom: 4px;
-            font-size: 14px;
-        }
-
-        /* FOOTER DOKUMEN */
         .doc-footer {
             margin-top: 40px;
             border-top: 1px solid #cbd5e1;
@@ -215,37 +378,13 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             line-height: 1.6;
         }
 
-        .doc-footer .warning-text {
-            font-weight: 700;
-            color: #dc2626; 
-            text-transform: uppercase;
-            font-size: 11px;
-            margin-bottom: 4px;
-        }
+        .doc-footer .warning-text { font-weight: 700; color: #dc2626; text-transform: uppercase; font-size: 11px; margin-bottom: 4px; }
 
-        /* Pengaturan Cetak Asli (Print Mode) */
         @media print {
-            html, body { 
-                background: #ffffff !important; 
-            }
-            .paper-preview {
-                margin: 0;
-                padding: 0;
-                box-shadow: none;
-                width: 100%;
-                min-height: auto;
-                border: none;
-            }
-            
-            .header-bg, .section-header {
-                background-color: #f1f5f9 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            
-            .doc-footer .warning-text {
-                color: #000000 !important; 
-            }
+            html, body { background: #ffffff !important; }
+            .paper-preview { margin: 0; padding: 0; box-shadow: none; width: 100%; min-height: auto; border: none; }
+            .header-bg, .section-header { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .doc-footer .warning-text { color: #000000 !important; }
         }
     </style>
 </head>
@@ -268,7 +407,7 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
                     </div>
                 </td>
                 <td width="30%" class="header-bg text-sm">
-                    <div class="status-badge">DOKUMEN TERKENDALI</div><br>
+                    <div class="status-badge-doc">DOKUMEN TERKENDALI</div><br>
                     Nomor Dokumen
                 </td>
             </tr>
@@ -340,7 +479,6 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
 </div>
 
 <script>
-    // Jeda 1 detik agar gambar QR Code
     window.onload = function() {
         setTimeout(function() {
             window.print();
