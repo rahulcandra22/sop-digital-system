@@ -28,5 +28,13 @@ Sistem Manajemen Dokumen Standard Operating Procedure (SOP) berbasis web yang di
 3. Sesuaikan username dan password database di file `config/database.php`.
 4. Jalankan `localhost/sop-digital-system` pada browser Anda.
 
----
+## 🔑 Akun Demo
+Gunakan akun berikut untuk masuk ke dalam sistem:
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Administrator** | `admin@sinergi.co.id` | `sinergi` |
+| **User (Rahul)** | `rahul@sinergi.co.id` | `rahul` |
+| **User (Bulan)** | `bulanhidayatul@sinergi.co.id` | `bulan` |
+
 **Internship Project 2026** Dibuat oleh **Rahul Candra** sebagai mahasiswa bagian dari program magang di PT. Sinergi Nusantara Integrasi.
