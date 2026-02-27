@@ -4,6 +4,14 @@ require_once '../includes/session.php';
 
 requireLogin();
 
+// Ambil ID User
+$user_id = getUserId();
+
+// Logika Notifikasi: Menghitung jumlah SOP yang butuh perbaikan
+$sql_notif = "SELECT COUNT(*) as total FROM sop WHERE created_by = $user_id AND status = 'Revisi'";
+$result_notif = mysqli_query($conn, $sql_notif);
+$notif_count = mysqli_fetch_assoc($result_notif)['total'];
+
 // Get statistics
 $sql_total_sop = "SELECT COUNT(*) as total FROM sop";
 $result_sop    = mysqli_query($conn, $sql_total_sop);
@@ -13,9 +21,10 @@ $sql_total_kategori = "SELECT COUNT(*) as total FROM categories";
 $result_kategori    = mysqli_query($conn, $sql_total_kategori);
 $total_kategori     = mysqli_fetch_assoc($result_kategori)['total'];
 
-// Get recent SOPs
+// Ambil SOP Terbaru milik user
 $sql_recent = "SELECT s.*, c.nama_kategori FROM sop s 
                LEFT JOIN categories c ON s.kategori_id = c.id 
+               WHERE s.created_by = $user_id 
                ORDER BY s.created_at DESC LIMIT 6";
 $result_recent = mysqli_query($conn, $sql_recent);
 
@@ -36,6 +45,7 @@ $flash = getFlashMessage();
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root {
@@ -56,9 +66,31 @@ $flash = getFlashMessage();
         }
         
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif !important; background-color: var(--bg) !important; color: var(--tm) !important; margin: 0; overflow-x: hidden; transition: background-color .35s, color .35s; }
-        body::before { content: ''; position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, .07), transparent 30%); pointer-events: none; }
+        body { font-family: 'Outfit', sans-serif !important; background-color: var(--bg) !important; color: var(--tm) !important; margin: 0; overflow-x: hidden; transition: background-color .35s, color .35s; scroll-behavior: smooth; }
         
+        /* CSS ANIMASI & NOTIFIKASI */
+        @keyframes ring-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .notif-btn {
+            all: unset; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; 
+            background: var(--togbg); border: 1px solid var(--gb); color: var(--togc); 
+            display: flex; align-items: center; justify-content: center; font-size: 17px; 
+            transition: 0.3s; position: relative; text-decoration: none;
+        }
+        .notif-btn:hover { color: #3b82f6; border-color: #3b82f6; transform: translateY(-2px); }
+
+        .notif-badge {
+            position: absolute; top: -2px; right: -2px; background: #ef4444; color: white; 
+            font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            border: 2px solid var(--tb); animation: ring-pulse 2s infinite;
+        }
+
+        /* Layout Styles */
         .sidebar { background: var(--sb) !important; border-right: 1px solid var(--gb) !important; backdrop-filter: blur(12px); }
         .sidebar-header { border-bottom: 1px solid var(--gb) !important; padding: 20px; }
         .sidebar-header h3 { color: var(--tm) !important; margin: 4px 0 2px; font-size: 16px; font-weight: 700; }
@@ -73,7 +105,7 @@ $flash = getFlashMessage();
         .topbar-left h2 { color: var(--tm) !important; font-size: 20px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
         .topbar-right { display: flex; align-items: center; gap: 12px; }
         
-        #theme-toggle-btn { all: unset; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; background: var(--togbg) !important; border: 1px solid var(--gb) !important; color: var(--togc) !important; display: flex !important; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); flex-shrink: 0; transition: all .25s; }
+        #theme-toggle-btn { all: unset; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; background: var(--togbg) !important; border: 1px solid var(--gb) !important; color: var(--togc) !important; display: flex !important; align-items: center; justify-content: center; font-size: 17px; transition: all .25s; }
         #theme-toggle-btn:hover { color: #3b82f6 !important; transform: scale(1.1); }
         
         .user-info { display: flex; align-items: center; gap: 10px; }
@@ -88,33 +120,37 @@ $flash = getFlashMessage();
         .card-header h3 { color: var(--tm) !important; margin: 0; font-size: 16px; font-weight: 600; }
         .card-body { padding: 22px; }
 
-        .stat-card { background: var(--cb) !important; border: 1px solid var(--gb) !important; border-radius: 16px !important; }
-        .stat-card:hover { transform: translateY(-5px); border-color: #3b82f6 !important; box-shadow: 0 4px 20px rgba(59, 130, 246, .15); }
-        .stat-info h3 { color: var(--tm) !important; font-size: 24px; margin-bottom: 4px; }
-        .stat-info p { color: var(--tmut) !important; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+        .stat-card { background: var(--cb) !important; border: 1px solid var(--gb) !important; border-radius: 16px !important; padding: 20px; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: #3b82f6 !important; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .stat-icon.green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+        .stat-info h3 { color: var(--tm) !important; font-size: 24px; margin: 0; }
+        .stat-info p { color: var(--tmut) !important; margin: 0; font-size: 14px; }
 
         .table-responsive { overflow-x: auto; border-radius: 10px; overflow: hidden; }
         table { width: 100% !important; border-collapse: collapse !important; }
         thead tr { background: var(--thbg) !important; }
-        thead th { background: var(--thbg) !important; color: var(--tmut) !important; padding: 13px 16px !important; font-size: .75rem !important; font-weight: 600 !important; text-transform: uppercase !important; border: none !important; }
+        thead th { background: var(--thbg) !important; color: var(--tmut) !important; padding: 13px 16px !important; font-size: .75rem !important; font-weight: 600 !important; text-transform: uppercase !important; border: none !important; text-align: left; }
         tbody tr:nth-child(odd) td { background: var(--trodd) !important; }
         tbody tr:nth-child(even) td { background: var(--treven) !important; }
         tbody tr:hover td { background: var(--trhov) !important; }
         tbody td { color: var(--tsub) !important; padding: 14px 16px !important; border-bottom: 1px solid var(--tbor) !important; }
         
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px !important; border: none !important; color: #fff !important; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; transition: .25s; }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        .btn-info { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, .3); }
-        .btn-sm { padding: 6px 12px !important; font-size: 12px !important; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border-radius: 8px !important; border: none !important; color: #fff !important; font-weight: 600; font-size: 12px; cursor: pointer; text-decoration: none; transition: .25s; }
+        .btn-info { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #fff !important; }
+        .btn-sm { padding: 6px 12px !important; }
 
         .alert { border-radius: 10px !important; padding: 12px 18px; margin-bottom: 20px; font-size: 14px; }
         .alert-success { background: rgba(16, 185, 129, .12) !important; color: #059669 !important; border: 1px solid rgba(16, 185, 129, .25) !important; }
 
         .cat-card-item { background: var(--trodd); border: 1px solid var(--gb); padding: 20px; border-radius: 12px; color: var(--tm); transition: all .3s ease; }
-        .cat-card-item:hover { transform: translateY(-5px); border-color: #3b82f6; background: var(--trhov); box-shadow: 0 10px 20px rgba(0, 0, 0, .1); }
-        .cat-card-item h4 { margin-bottom: 10px; font-size: 16px; font-weight: 600; color: var(--tm); }
-        .cat-card-item p { margin: 0; font-size: 13px; color: var(--tmut); }
+        .cat-card-item:hover { transform: translateY(-5px); border-color: #3b82f6; background: var(--trhov); }
+        .cat-card-item h4 { margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: var(--tm); }
     </style>
 </head>
 <body>
@@ -137,8 +173,21 @@ $flash = getFlashMessage();
                 <div class="topbar-left">
                     <h2><i class="fas fa-home" style="color:#3b82f6"></i> Dashboard</h2>
                 </div>
+                
                 <div class="topbar-right">
-                    <button type="button" id="theme-toggle-btn" title="Ganti Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
+                    <a href="#status-sop" id="notif-btn" class="notif-btn" 
+                       data-count="<?php echo $notif_count; ?>"
+                       title="<?php echo ($notif_count > 0) ? 'Ada '.$notif_count.' revisi' : 'Tidak ada notifikasi'; ?>">
+                        <i class="fas fa-bell"></i>
+                        <?php if ($notif_count > 0): ?>
+                            <span class="notif-badge"><?php echo $notif_count; ?></span>
+                        <?php endif; ?>
+                    </a>
+
+                    <button type="button" id="theme-toggle-btn" title="Ganti Tema">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    
                     <div class="user-info">
                         <div class="user-avatar"><?php echo strtoupper(substr(getNamaLengkap(), 0, 1)); ?></div>
                         <div>
@@ -153,7 +202,7 @@ $flash = getFlashMessage();
             <div class="content-wrapper">
                 <?php if ($flash): ?>
                     <div class="alert alert-<?php echo $flash['type']; ?>">
-                        <?php echo $flash['message']; ?>
+                        <i class="fas fa-info-circle"></i> <?php echo $flash['message']; ?>
                     </div>
                 <?php endif; ?>
                 
@@ -188,11 +237,14 @@ $flash = getFlashMessage();
                     </div>
                     <div class="card-body">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                            <?php while ($cat = mysqli_fetch_assoc($result_cat)): ?>
+                            <?php 
+                            mysqli_data_seek($result_cat, 0);
+                            while ($cat = mysqli_fetch_assoc($result_cat)): 
+                            ?>
                                 <a href="browse_sop.php?kategori=<?php echo $cat['id']; ?>" style="text-decoration: none;">
                                     <div class="cat-card-item">
                                         <h4><?php echo htmlspecialchars($cat['nama_kategori']); ?></h4>
-                                        <p><i class="fas fa-file-alt" style="margin-right:5px"></i> <?php echo $cat['jumlah_sop']; ?> SOP tersedia</p>
+                                        <p style="margin:0; font-size:13px; color:var(--tmut);"><i class="fas fa-file-alt"></i> <?php echo $cat['jumlah_sop']; ?> SOP</p>
                                     </div>
                                 </a>
                             <?php endwhile; ?>
@@ -200,10 +252,10 @@ $flash = getFlashMessage();
                     </div>
                 </div>
                 
-                <div class="card">
+                <div class="card" id="status-sop">
                     <div class="card-header">
-                        <h3><i class="fas fa-history"></i> SOP Terbaru</h3>
-                        <a href="browse_sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Lihat Semua</a>
+                        <h3><i class="fas fa-history"></i> Status SOP Saya</h3>
+                        <a href="browse_sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Cari SOP</a>
                     </div>
                     <div class="card-body" style="padding:0;">
                         <div class="table-responsive">
@@ -215,11 +267,15 @@ $flash = getFlashMessage();
                                         <th>Kategori</th>
                                         <th>Status</th>
                                         <th>Tanggal</th>
-                                        <th>Aksi</th>
+                                        <th width="20%">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $no = 1; while ($row = mysqli_fetch_assoc($result_recent)): ?>
+                                    <?php 
+                                    $no = 1; 
+                                    while ($row = mysqli_fetch_assoc($result_recent)): 
+                                        $status = $row['status'];
+                                    ?>
                                         <tr>
                                             <td><?php echo $no++; ?></td>
                                             <td style="font-weight:500; color:var(--tm)!important">
@@ -231,22 +287,30 @@ $flash = getFlashMessage();
                                                 </span>
                                             </td>
                                             <td>
-                                                <?php if ($row['status'] == 'Disetujui'): ?>
+                                                <?php if ($status == 'Disetujui'): ?>
                                                     <span class="badge" style="background: rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);">Disetujui</span>
-                                                <?php elseif ($row['status'] == 'Pending'): ?>
-                                                    <span class="badge" style="background: rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3);">Pending</span>
+                                                <?php elseif ($status == 'Review'): ?>
+                                                    <span class="badge" style="background: rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3);">Review</span>
+                                                <?php elseif ($status == 'Revisi'): ?>
+                                                    <span class="badge" style="background: rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);">Revisi</span>
                                                 <?php else: ?>
-                                                    <span class="badge" style="background: rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);">Ditolak</span>
+                                                    <span class="badge" style="background: rgba(148,163,184,0.15); color:#94a3b8; border:1px solid rgba(148,163,184,0.3);">Draft</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
                                             <td>
-                                                <a href="view_sop.php?id=<?php echo $row['id']; ?>" class="btn btn-info btn-sm">
-                                                    <i class="fas fa-eye"></i> Lihat
-                                                </a>
+                                                <div style="display: flex; gap: 5px;">
+                                                    <a href="view_sop.php?id=<?php echo $row['id']; ?>" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                                    <?php if ($status == 'Revisi'): ?>
+                                                        <a href="edit_sop.php?id=<?php echo $row['id']; ?>" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> Perbaiki</a>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endwhile; ?>
+                                    <?php if (mysqli_num_rows($result_recent) == 0): ?>
+                                        <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--tmut)">Belum ada data.</td></tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -256,8 +320,8 @@ $flash = getFlashMessage();
         </main>
     </div>
 
-    <script src="../assets/js/script.js"></script>
     <script>
+        // Theme Logic
         (function() {
             if (localStorage.getItem('theme') === 'light') {
                 document.documentElement.setAttribute('data-theme', 'light');
@@ -269,9 +333,10 @@ $flash = getFlashMessage();
                 icon = document.getElementById('theme-icon');
 
             function sync() {
-                icon.className = document.documentElement.getAttribute('data-theme') === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+                if (icon) {
+                    icon.className = document.documentElement.getAttribute('data-theme') === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+                }
             }
-            
             sync();
             
             if (btn) {
@@ -285,6 +350,27 @@ $flash = getFlashMessage();
                         localStorage.setItem('theme', 'light');
                     }
                     sync();
+                });
+            }
+
+            // LOGIKA KLIK NOTIFIKASI
+            var notifBtn = document.getElementById('notif-btn');
+            if (notifBtn) {
+                notifBtn.addEventListener('click', function(e) {
+                    var count = parseInt(this.getAttribute('data-count'));
+                    
+                    if (count === 0) {
+                        // Jika tidak ada revisi, cegah scroll dan tampilkan pesan
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Tidak Ada Notifikasi',
+                            text: 'Semua dokumen aman! Tidak ada dokumen yang perlu diperbaiki.',
+                            icon: 'info',
+                            confirmButtonColor: '#3b82f6',
+                            background: getComputedStyle(document.documentElement).getPropertyValue('--cb').trim(),
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--tm').trim()
+                        });
+                    }
                 });
             }
         });

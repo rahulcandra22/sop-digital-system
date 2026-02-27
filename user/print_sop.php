@@ -282,7 +282,7 @@ $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0
             box-sizing: border-box;
             position: relative;
             overflow: hidden;
-            color: #000000 !important; /* Memastikan font di atas kertas selalu hitam */
+            color: #000000 !important; 
         }
 
         /* WATERMARK */

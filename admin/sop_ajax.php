@@ -25,6 +25,14 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             echo '<span style="background:rgba(59,130,246,.18);color:#60a5fa;border:1px solid rgba(59,130,246,.30);padding:4px 12px;border-radius:20px;font-size:.8rem"><i class="fas fa-folder" style="margin-right:5px"></i>' . htmlspecialchars($row['nama_kategori']) . '</span>';
             echo '<span class="s-badge" style="' . $style . '">' . $s . '</span>';
             echo '</div>';
+
+            // Tampilkan Catatan Admin 
+            if (!empty($row['catatan_admin'])) {
+                echo '<div style="background:rgba(239,68,68,.1);border-left:4px solid #ef4444;padding:12px;margin-bottom:16px;border-radius:4px;">';
+                echo '<strong style="color:#ef4444;font-size:13px;display:block;margin-bottom:4px">Catatan Revisi Terakhir:</strong>';
+                echo '<p style="margin:0;font-style:italic;font-size:14px;color:var(--tm)">"' . htmlspecialchars($row['catatan_admin']) . '"</p></div>';
+            }
+
             echo '<p><strong>Dibuat oleh:</strong> ' . htmlspecialchars($row['creator']) . ' &nbsp;|&nbsp; <strong>Tanggal:</strong> ' . date('d F Y, H:i', strtotime($row['created_at'])) . '</p>';
             
             if ($row['deskripsi']) {
@@ -56,20 +64,34 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             echo '</select></div>';
             echo '<div class="form-group"><label>Deskripsi</label><textarea name="deskripsi" class="form-control" rows="3">' . htmlspecialchars($row['deskripsi']) . '</textarea></div>';
             echo '<div class="form-group"><label>Langkah-langkah</label><textarea name="langkah_kerja" class="form-control" rows="8" required>' . htmlspecialchars($row['langkah_kerja']) . '</textarea></div>';
-            echo '<div class="form-group"><label>Status</label><select name="status" class="form-control">';
             
+            // BAGIAN STATUS
+            echo '<div class="form-group"><label>Status</label><select name="status" id="status_selector" class="form-control" onchange="toggleCatatan(this.value)">';
             foreach (['Draft', 'Review', 'Disetujui', 'Revisi'] as $st) {
                 $sel = ($row['status'] == $st) ? 'selected' : '';
                 echo '<option value="' . $st . '" ' . $sel . '>' . $st . '</option>';
             }
-            
             echo '</select></div>';
-            echo '<div class="form-group"><label>File Lampiran</label>';
+
+            // TAMBAHAN: INPUT CATATAN ADMIN (Hanya muncul/diisi jika status Revisi)
+            $display = ($row['status'] == 'Revisi') ? 'block' : 'none';
+            echo '<div class="form-group" id="catatan_admin_group" style="display:'.$display.';">';
+            echo '<label style="color:#ef4444">Catatan Revisi untuk User</label>';
+            echo '<textarea name="catatan_admin" class="form-control" rows="3" placeholder="Contoh: Perbaiki langkah nomor 3, lampiran kurang lengkap.">' . htmlspecialchars($row['catatan_admin'] ?? '') . '</textarea>';
+            echo '<small style="color:var(--tmut)">Pesan ini akan langsung terlihat oleh user di dashboard mereka.</small>';
+            echo '</div>';
+
+            // Script sederhana untuk menyembunyikan/menampilkan catatan secara otomatis
+            echo '<script>
+                function toggleCatatan(val) {
+                    document.getElementById("catatan_admin_group").style.display = (val === "Revisi") ? "block" : "none";
+                }
+            </script>';
             
+            echo '<div class="form-group"><label>File Lampiran</label>';
             if ($row['file_attachment']) {
                 echo '<p style="font-size:12px;margin-bottom:8px;color:var(--tmut)">File saat ini: <strong>' . htmlspecialchars($row['file_attachment']) . '</strong></p>';
             }
-            
             echo '<input type="file" name="file_attachment" class="form-control"></div>';
             echo '<div style="display:flex;gap:10px"><button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Update</button><button type="button" onclick="closeModal(\'editModal\')" class="btn btn-danger"><i class="fas fa-times"></i> Batal</button></div></form>';
         }

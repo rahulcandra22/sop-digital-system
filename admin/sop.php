@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $desk  = mysqli_real_escape_string($conn, $desk);
     $lk    = mysqli_real_escape_string($conn, $lk);
     $st    = mysqli_real_escape_string($conn, $_POST['status'] ?? 'Draft');
+    $catatan = mysqli_real_escape_string($conn, $_POST['catatan_admin'] ?? ''); // Input baru
     $fa    = '';
     
     if (isset($_FILES['file_attachment']) && $_FILES['file_attachment']['error'] == 0) {
@@ -33,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     
     if ($_POST['action'] == 'add') {
         $cb = getUserId();
-        if (mysqli_query($conn, "INSERT INTO sop (judul,kategori_id,deskripsi,langkah_kerja,file_attachment,created_by,status) VALUES ('$judul',$kid,'$desk','$lk','$fa',$cb,'$st')")) {
+        // Saat tambah baru, catatan_admin dikosongkan secara default
+        if (mysqli_query($conn, "INSERT INTO sop (judul,kategori_id,deskripsi,langkah_kerja,file_attachment,created_by,status,catatan_admin) VALUES ('$judul',$kid,'$desk','$lk','$fa',$cb,'$st','')")) {
             setFlashMessage('success', 'SOP ditambahkan!');
         } else {
             setFlashMessage('danger', 'Gagal!');
@@ -51,7 +53,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             }
         }
         
-        if (mysqli_query($conn, "UPDATE sop SET judul='$judul',kategori_id=$kid,deskripsi='$desk',langkah_kerja='$lk',status='$st' $fu WHERE id=$id")) {
+        // UPDATE QUERY: Sekarang menyertakan kolom catatan_admin
+        $query_update = "UPDATE sop SET 
+                        judul='$judul', 
+                        kategori_id=$kid, 
+                        deskripsi='$desk', 
+                        langkah_kerja='$lk', 
+                        status='$st', 
+                        catatan_admin='$catatan', 
+                        updated_at=NOW() 
+                        $fu 
+                        WHERE id=$id";
+
+        if (mysqli_query($conn, $query_update)) {
             setFlashMessage('success', 'SOP diupdate!');
         } else {
             setFlashMessage('danger', 'Gagal!');
@@ -278,9 +292,9 @@ $flash = getFlashMessage();
                                         <td><span class="s-badge" style="<?php echo $style; ?>"><?php echo $s; ?></span></td>
                                         <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
                                         <td>
-                                            <button onclick="viewSOP(<?php echo $row['id']; ?>)" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></button>
-                                            <button onclick="editSOP(<?php echo $row['id']; ?>)" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></button>
-                                            <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>,'SOP')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                                            <button onclick="viewSOP(<?php echo $row['id']; ?>)" class="btn btn-info btn-sm" title="Lihat"><i class="fas fa-eye"></i></button>
+                                            <button onclick="editSOP(<?php echo $row['id']; ?>)" class="btn btn-warning btn-sm" title="Edit/Review"><i class="fas fa-edit"></i></button>
+                                            <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>,'SOP')" class="btn btn-danger btn-sm" title="Hapus"><i class="fas fa-trash"></i></a>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>
@@ -378,7 +392,7 @@ $flash = getFlashMessage();
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Edit SOP</h3>
+            <h3><i class="fas fa-edit"></i> Edit/Review SOP</h3>
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
         <div class="modal-body" id="editContent">

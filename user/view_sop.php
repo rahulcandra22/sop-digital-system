@@ -35,7 +35,7 @@ $sop = mysqli_fetch_assoc($result);
     
     <style>
         /* =========================================================
-           VARIABLE TEMA (Sama persis dengan Dashboard)
+            VARIABLE TEMA (Sama persis dengan Dashboard)
         ========================================================= */
         :root {
             --bg: #020617; --sb: rgba(15, 23, 42, .97); --tb: rgba(15, 23, 42, .87); --cb: rgba(30, 41, 59, .75);
@@ -94,6 +94,7 @@ $sop = mysqli_fetch_assoc($result);
         .btn-back { background: var(--trodd); color: var(--tsub) !important; border: 1px solid var(--gb) !important; }
         .btn-success { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 4px 12px rgba(16, 185, 129, .3); }
         .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706) !important; box-shadow: 0 4px 12px rgba(245, 158, 11, .3); }
+        .btn-edit { background: linear-gradient(135deg, #f59e0b, #d97706) !important; margin-left: auto; }
 
         .card-header-glow { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 20px 24px; border-bottom: 1px solid var(--gb); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .card-header-glow h2 { margin: 0; text-shadow: 0 0 10px rgba(0, 0, 0, 0.3); font-size: 22px; }
@@ -108,6 +109,22 @@ $sop = mysqli_fetch_assoc($result);
         .meta-label { color: var(--tmut); font-size: 13px; margin: 0; font-weight: 500; }
         .meta-value { color: var(--tm); font-weight: 600; margin: 6px 0 0 0; font-size: 15px; }
 
+        /* Revisi Box Style */
+        .revision-box { 
+            background: rgba(239, 68, 68, 0.1); 
+            border: 1px solid #ef4444; 
+            border-left: 5px solid #ef4444; 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-bottom: 24px; 
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { border-color: #ef4444; }
+            50% { border-color: transparent; }
+            100% { border-color: #ef4444; }
+        }
+
         .section-box { padding: 20px; border-radius: 12px; margin-bottom: 24px; background: var(--trodd); border: 1px solid var(--gb); }
         .section-box:last-child { margin-bottom: 0; }
         
@@ -118,23 +135,6 @@ $sop = mysqli_fetch_assoc($result);
         .section-title { color: var(--tm); margin-top: 0; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; }
         .section-box p { color: var(--tsub); line-height: 1.6; margin: 0; font-size: 15px; }
         .section-box pre { font-family: 'Outfit', sans-serif; white-space: pre-wrap; margin: 0; line-height: 1.6; font-size: 15px; color: var(--tsub); }
-        
-        @media print {
-            body { background: white !important; color: black !important; }
-            .sidebar, .topbar, .btn-logout, .btn, #theme-toggle-btn, .dashboard-wrapper::before { display: none !important; }
-            .dashboard-wrapper { display: block !important; }
-            .main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-            .content-wrapper { padding: 0 !important; }
-            .card { box-shadow: none !important; border: 1px solid #000 !important; background: white !important; color: black !important; }
-            .card-header-glow { background: #f2f2f2 !important; color: black !important; border-bottom: 1px solid #000; }
-            .card-header-glow h2, .card-header-glow span { color: black !important; text-shadow: none !important; background: transparent; padding: 0; }
-            .section-box { background: #fff !important; border: 1px solid #000 !important; box-shadow: none !important; page-break-inside: avoid !important; }
-            .section-green, .section-blue, .section-violet { border-left: none !important; background: transparent !important; }
-            .section-title { color: black !important; }
-            .section-box p, .section-box pre { color: black !important; }
-            .meta-grid { background: white !important; border: 1px solid #000 !important; }
-            .meta-label, .meta-value { color: black !important; }
-        }
     </style>
 </head>
 
@@ -160,11 +160,9 @@ $sop = mysqli_fetch_assoc($result);
                     <h2><i class="fas fa-file-alt" style="color:#3b82f6;"></i> Detail SOP</h2>
                 </div>
                 <div class="topbar-right">
-                    
                     <button type="button" id="theme-toggle-btn" title="Ganti Tema">
                         <i class="fas fa-moon" id="theme-icon"></i>
                     </button>
-                    
                     <div class="user-info">
                         <div class="user-avatar"><?php echo strtoupper(substr(getNamaLengkap(), 0, 1)); ?></div>
                         <div>
@@ -177,19 +175,29 @@ $sop = mysqli_fetch_assoc($result);
             </div>
             
             <div class="content-wrapper">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <a href="browse_sop.php" class="btn btn-back">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="dashboard.php" class="btn btn-back">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
+                    
                     <a href="print_sop.php?id=<?php echo $sop['id']; ?>" class="btn btn-success">
                         <i class="fas fa-print"></i> Cetak
                     </a>
+
+                    <?php if ($sop['status'] == 'Revisi'): ?>
+                        <a href="edit_sop.php?id=<?php echo $sop['id']; ?>" class="btn btn-edit">
+                            <i class="fas fa-edit"></i> Perbaiki Sekarang
+                        </a>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="card">
                     <div class="card-header-glow">
                         <h2><?php echo htmlspecialchars($sop['judul']); ?></h2>
-                        <span><?php echo htmlspecialchars($sop['nama_kategori']); ?></span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span style="background: rgba(255,255,255,0.1);"><?php echo strtoupper($sop['status']); ?></span>
+                            <span><?php echo htmlspecialchars($sop['nama_kategori']); ?></span>
+                        </div>
                     </div>
                     
                     <div class="card-body">
@@ -207,6 +215,20 @@ $sop = mysqli_fetch_assoc($result);
                                 <p class="meta-value"><?php echo date('d F Y, H:i', strtotime($sop['updated_at'])); ?> WIB</p>
                             </div>
                         </div>
+
+                        <?php if ($sop['status'] == 'Revisi' && !empty($sop['catatan_admin'])): ?>
+                        <div class="revision-box">
+                            <h3 style="color: #ef4444; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-exclamation-circle"></i> Catatan Revisi Admin
+                            </h3>
+                            <p style="color: var(--tm); font-style: italic; line-height: 1.6; margin-bottom: 15px;">
+                                "<?php echo nl2br(htmlspecialchars($sop['catatan_admin'])); ?>"
+                            </p>
+                            <a href="edit_sop.php?id=<?php echo $sop['id']; ?>" class="btn btn-warning btn-sm">
+                                <i class="fas fa-tools"></i> Klik untuk Memperbaiki Dokumen
+                            </a>
+                        </div>
+                        <?php endif; ?>
                         
                         <?php if (!empty($sop['deskripsi'])): ?>
                         <div class="section-box section-blue">
@@ -238,7 +260,6 @@ $sop = mysqli_fetch_assoc($result);
     </div>
     
     <script src="../assets/js/script.js"></script>
-    
     <script>
         (function() {
             if (localStorage.getItem('theme') === 'light') {
@@ -251,9 +272,8 @@ $sop = mysqli_fetch_assoc($result);
                 icon = document.getElementById('theme-icon');
                 
             function sync() {
-                icon.className = document.documentElement.getAttribute('data-theme') === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+                if(icon) icon.className = document.documentElement.getAttribute('data-theme') === 'light' ? 'fas fa-sun' : 'fas fa-moon';
             }
-            
             sync();
             
             if (btn) {
