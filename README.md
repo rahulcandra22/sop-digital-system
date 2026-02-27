@@ -37,4 +37,5 @@ Gunakan akun berikut untuk masuk ke dalam sistem:
 | **User (Rahul)** | `rahul@sinergi.co.id` | `rahul` |
 | **User (Bulan)** | `bulanhidayatul@sinergi.co.id` | `bulan` |
 
+## 👨‍💻 Kontributor
 **Internship Project 2026** Dibuat oleh **Rahul Candra** sebagai mahasiswa bagian dari program magang di PT. Sinergi Nusantara Integrasi.
