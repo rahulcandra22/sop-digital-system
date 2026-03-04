@@ -721,7 +721,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php if ($login_success): ?>
                 const btnLogin = document.getElementById('btn-login');
                 // Ubah teks dan matikan tombol agar tidak di-klik 2x
-                btnLogin.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengalihkan...';
+                btnLogin.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sedang masuk...';
                 btnLogin.disabled = true;
 
                 // Hitung mundur 2000 milidetik (2 detik) lalu redirect
