@@ -25,7 +25,7 @@ Sistem Manajemen Dokumen Standard Operating Procedure (SOP) berbasis web yang di
 - **Server**: XAMPP (Apache dan MySQL)
 
 ## 🚀 Cara Instalasi
-1. Pindahkan folder proyek ini ke direktori `htdocs` (XAMPP) atau `www` (Laragon) Anda.
+1. Pindahkan folder proyek ini ke direktori `htdocs` (XAMPP) Anda.
 2. Buat database baru di phpMyAdmin dengan nama `sop_digital_db`.
 3. Import file `docs/database.sql` ke dalam database tersebut.
 4. Sesuaikan kredensial (admin, user, password) pada file `config/database.php`.
