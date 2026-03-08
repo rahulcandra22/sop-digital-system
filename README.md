@@ -20,7 +20,7 @@ Sistem Manajemen Dokumen Standard Operating Procedure (SOP) berbasis web yang di
 
 ## 🛠️ Teknologi yang Digunakan
 - **Backend**: PHP 8.2 (Native)
-- **Database**: MySQL / MariaDB
+- **Database**: MySQL
 - **Frontend**: HTML, CSS & JavaScript
 - **Server**: XAMPP (Apache dan MySQL)
 
