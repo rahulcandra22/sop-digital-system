@@ -8,97 +8,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $kid   = (int)$_POST['kategori_id'];
     $desk  = trim($_POST['deskripsi']);
     $lk    = trim($_POST['langkah_kerja']);
-    
     if (empty($judul) || empty($lk) || $kid == 0) {
         setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
-        header('Location: sop.php');
-        exit();
+        header('Location: sop.php'); exit();
     }
-    
-    $judul = mysqli_real_escape_string($conn, $judul);
-    $desk  = mysqli_real_escape_string($conn, $desk);
-    $lk    = mysqli_real_escape_string($conn, $lk);
-    $st    = mysqli_real_escape_string($conn, $_POST['status'] ?? 'Draft');
-    $catatan = mysqli_real_escape_string($conn, $_POST['catatan_admin'] ?? ''); // Input baru
-    $fa    = '';
-    
+    $judul   = mysqli_real_escape_string($conn, $judul);
+    $desk    = mysqli_real_escape_string($conn, $desk);
+    $lk      = mysqli_real_escape_string($conn, $lk);
+    $st      = mysqli_real_escape_string($conn, $_POST['status'] ?? 'Draft');
+    $catatan = mysqli_real_escape_string($conn, $_POST['catatan_admin'] ?? '');
+    $fa      = '';
     if (isset($_FILES['file_attachment']) && $_FILES['file_attachment']['error'] == 0) {
         $dir = "../assets/uploads/";
         $ext = pathinfo($_FILES['file_attachment']['name'], PATHINFO_EXTENSION);
-        $fn  = time() . '_' . uniqid() . '.' . $ext;
-        
-        if (move_uploaded_file($_FILES['file_attachment']['tmp_name'], $dir . $fn)) {
-            $fa = $fn;
-        }
+        $fn  = time().'_'.uniqid().'.'.$ext;
+        if (move_uploaded_file($_FILES['file_attachment']['tmp_name'], $dir.$fn)) $fa = $fn;
     }
-    
     if ($_POST['action'] == 'add') {
         $cb = getUserId();
-        // Saat tambah baru, catatan_admin dikosongkan secara default
-        if (mysqli_query($conn, "INSERT INTO sop (judul,kategori_id,deskripsi,langkah_kerja,file_attachment,created_by,status,catatan_admin) VALUES ('$judul',$kid,'$desk','$lk','$fa',$cb,'$st','')")) {
+        if (mysqli_query($conn, "INSERT INTO sop (judul,kategori_id,deskripsi,langkah_kerja,file_attachment,created_by,status,catatan_admin) VALUES ('$judul',$kid,'$desk','$lk','$fa',$cb,'$st','')"))
             setFlashMessage('success', 'SOP ditambahkan!');
-        } else {
-            setFlashMessage('danger', 'Gagal!');
-        }
+        else setFlashMessage('danger', 'Gagal!');
     } elseif ($_POST['action'] == 'edit') {
         $id = (int)$_POST['id'];
         $fu = '';
-        
         if ($fa) {
             $fu  = ", file_attachment='$fa'";
             $old = mysqli_fetch_assoc(mysqli_query($conn, "SELECT file_attachment FROM sop WHERE id=$id"));
-            
-            if ($old && $old['file_attachment'] && file_exists("../assets/uploads/" . $old['file_attachment'])) {
-                unlink("../assets/uploads/" . $old['file_attachment']);
-            }
+            if ($old && $old['file_attachment'] && file_exists("../assets/uploads/".$old['file_attachment']))
+                unlink("../assets/uploads/".$old['file_attachment']);
         }
-        
-        // UPDATE QUERY: Sekarang menyertakan kolom catatan_admin
-        $query_update = "UPDATE sop SET 
-                        judul='$judul', 
-                        kategori_id=$kid, 
-                        deskripsi='$desk', 
-                        langkah_kerja='$lk', 
-                        status='$st', 
-                        catatan_admin='$catatan', 
-                        updated_at=NOW() 
-                        $fu 
-                        WHERE id=$id";
-
-        if (mysqli_query($conn, $query_update)) {
+        if (mysqli_query($conn, "UPDATE sop SET judul='$judul',kategori_id=$kid,deskripsi='$desk',langkah_kerja='$lk',status='$st',catatan_admin='$catatan',updated_at=NOW() $fu WHERE id=$id"))
             setFlashMessage('success', 'SOP diupdate!');
-        } else {
-            setFlashMessage('danger', 'Gagal!');
-        }
+        else setFlashMessage('danger', 'Gagal!');
     }
-    
-    header('Location: sop.php');
-    exit();
+    header('Location: sop.php'); exit();
 }
-
 if (isset($_GET['delete'])) {
     $id  = (int)$_GET['delete'];
     $old = mysqli_fetch_assoc(mysqli_query($conn, "SELECT file_attachment FROM sop WHERE id=$id"));
-    
-    if ($old && $old['file_attachment'] && file_exists("../assets/uploads/" . $old['file_attachment'])) {
-        unlink("../assets/uploads/" . $old['file_attachment']);
-    }
-    
-    if (mysqli_query($conn, "DELETE FROM sop WHERE id=$id")) {
+    if ($old && $old['file_attachment'] && file_exists("../assets/uploads/".$old['file_attachment']))
+        unlink("../assets/uploads/".$old['file_attachment']);
+    if (mysqli_query($conn, "DELETE FROM sop WHERE id=$id"))
         setFlashMessage('success', 'SOP dihapus!');
-    } else {
-        setFlashMessage('danger', 'Gagal!');
-    }
-    
-    header('Location: sop.php');
-    exit();
+    else setFlashMessage('danger', 'Gagal!');
+    header('Location: sop.php'); exit();
 }
-
-$result = mysqli_query($conn, "SELECT s.*,c.nama_kategori,u.nama_lengkap as creator FROM sop s LEFT JOIN categories c ON s.kategori_id=c.id LEFT JOIN users u ON s.created_by=u.id ORDER BY s.created_at DESC");
+$result     = mysqli_query($conn, "SELECT s.*,c.nama_kategori,u.nama_lengkap as creator FROM sop s LEFT JOIN categories c ON s.kategori_id=c.id LEFT JOIN users u ON s.created_by=u.id ORDER BY s.created_at DESC");
 $result_cat = mysqli_query($conn, "SELECT * FROM categories ORDER BY nama_kategori ASC");
-$flash = getFlashMessage();
+$flash      = getFlashMessage();
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -110,105 +69,136 @@ $flash = getFlashMessage();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #020617; --sb: rgba(15, 23, 42, .97); --tb: rgba(15, 23, 42, .87); --cb: rgba(30, 41, 59, .75);
-            --gb: rgba(255, 255, 255, .08); --tm: #f8fafc; --tmut: #94a3b8; --tsub: #cbd5e1; --thbg: rgba(0, 0, 0, .35);
-            --trodd: rgba(15, 23, 42, .55); --treven: rgba(15, 23, 42, .35); --trhov: rgba(59, 130, 246, .09);
-            --tbor: rgba(255, 255, 255, .06); --ibg: rgba(0, 0, 0, .30); --mbg: #1e293b; --mbor: rgba(255, 255, 255, .10);
-            --lf: brightness(0) invert(1); --lbg: rgba(239, 68, 68, .18); --lc: #fca5a5; --lbor: rgba(239, 68, 68, .30);
-            --sl: #94a3b8; --sa: rgba(59, 130, 246, .12); --togbg: rgba(30, 41, 59, .80); --togc: #94a3b8;
-            --sbg: rgba(0, 0, 0, .30); --sbor: rgba(255, 255, 255, .10);
+            --bg:#020617; --sb:rgba(15,23,42,.97); --tb:rgba(15,23,42,.87); --cb:rgba(30,41,59,.75);
+            --gb:rgba(255,255,255,.08); --tm:#f8fafc; --tmut:#94a3b8; --tsub:#cbd5e1; --thbg:rgba(0,0,0,.35);
+            --trodd:rgba(15,23,42,.55); --treven:rgba(15,23,42,.35); --trhov:rgba(59,130,246,.09);
+            --tbor:rgba(255,255,255,.06); --ibg:rgba(0,0,0,.30); --mbg:#1e293b; --mbor:rgba(255,255,255,.10);
+            --lf:brightness(0) invert(1); --lbg:rgba(239,68,68,.18); --lc:#fca5a5; --lbor:rgba(239,68,68,.30);
+            --sl:#94a3b8; --sa:rgba(59,130,246,.12); --togbg:rgba(30,41,59,.80); --togc:#94a3b8;
+            --sbg:rgba(0,0,0,.30); --sbor:rgba(255,255,255,.10);
         }
         [data-theme="light"] {
-            --bg: #f0f4f8; --sb: rgba(255, 255, 255, .98); --tb: rgba(255, 255, 255, .96); --cb: rgba(255, 255, 255, .95);
-            --gb: rgba(0, 0, 0, .09); --tm: #0f172a; --tmut: #64748b; --tsub: #334155; --thbg: #e9eef5;
-            --trodd: #ffffff; --treven: #f8fafc; --trhov: #eff6ff; --tbor: rgba(0, 0, 0, .07); --ibg: rgba(255, 255, 255, .95);
-            --mbg: #ffffff; --mbor: rgba(0, 0, 0, .10); --lf: none; --lbg: rgba(239, 68, 68, .07); --lc: #dc2626;
-            --lbor: rgba(239, 68, 68, .18); --sl: #64748b; --sa: rgba(59, 130, 246, .08); --togbg: rgba(241, 245, 249, .95);
-            --togc: #475569; --sbg: rgba(255, 255, 255, .95); --sbor: rgba(0, 0, 0, .10);
+            --bg:#f0f4f8; --sb:rgba(255,255,255,.98); --tb:rgba(255,255,255,.96); --cb:rgba(255,255,255,.95);
+            --gb:rgba(0,0,0,.09); --tm:#0f172a; --tmut:#64748b; --tsub:#334155; --thbg:#e9eef5;
+            --trodd:#ffffff; --treven:#f8fafc; --trhov:#eff6ff; --tbor:rgba(0,0,0,.07); --ibg:rgba(255,255,255,.95);
+            --mbg:#ffffff; --mbor:rgba(0,0,0,.10); --lf:none; --lbg:rgba(239,68,68,.07); --lc:#dc2626;
+            --lbor:rgba(239,68,68,.18); --sl:#64748b; --sa:rgba(59,130,246,.08); --togbg:rgba(241,245,249,.95);
+            --togc:#475569; --sbg:rgba(255,255,255,.95); --sbor:rgba(0,0,0,.10);
         }
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'Outfit', sans-serif !important; background-color: var(--bg) !important; color: var(--tm) !important; margin: 0; overflow-x: hidden; transition: background-color .35s, color .35s; }
-        body::before { content: ''; position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, .07), transparent 30%); pointer-events: none; }
-        .sidebar { background: var(--sb) !important; border-right: 1px solid var(--gb) !important; backdrop-filter: blur(12px); }
-        .sidebar-header { border-bottom: 1px solid var(--gb) !important; padding: 20px; }
-        .sidebar-header h3 { color: var(--tm) !important; margin: 4px 0 2px; font-size: 16px; font-weight: 700; }
-        .sidebar-header p { color: var(--tmut) !important; margin: 0; font-size: 12px; }
-        .sidebar-logo { filter: var(--lf); max-width: 80px; }
-        .sidebar-menu { list-style: none; margin: 0; padding: 12px 0; }
-        .sidebar-menu li a { display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: var(--sl) !important; text-decoration: none; border-left: 3px solid transparent; font-size: 14px; font-weight: 500; transition: .25s; }
-        .sidebar-menu li a:hover, .sidebar-menu li a.active { background: var(--sa) !important; color: #3b82f6 !important; border-left-color: #3b82f6; }
-        .main-content { background: transparent !important; }
-        .topbar { background: var(--tb) !important; border-bottom: 1px solid var(--gb) !important; backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; }
-        .topbar-left h2 { color: var(--tm) !important; font-size: 20px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
-        .topbar-right { display: flex; align-items: center; gap: 12px; }
-        #theme-toggle-btn { all: unset; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; background: var(--togbg) !important; border: 1px solid var(--gb) !important; color: var(--togc) !important; display: flex !important; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); flex-shrink: 0; transition: all .25s; }
-        #theme-toggle-btn:hover { color: #3b82f6 !important; transform: scale(1.1); }
-        #theme-toggle-btn i { pointer-events: none; color: inherit !important; font-size: 17px; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-info strong { color: var(--tm) !important; font-size: 14px; display: block; }
-        .user-info p { color: var(--tmut) !important; margin: 0; font-size: 11px; }
-        .user-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important; color: #fff !important; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
-        .btn-logout { padding: 8px 18px; background: var(--lbg) !important; color: var(--lc) !important; border: 1px solid var(--lbor) !important; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
-        .content-wrapper { padding: 24px; }
-        .card { background: var(--cb) !important; border: 1px solid var(--gb) !important; border-radius: 16px !important; box-shadow: 0 4px 24px rgba(0, 0, 0, .10); margin-bottom: 24px; overflow: hidden; }
-        .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--gb); }
-        .card-header h3 { color: var(--tm) !important; margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .card-body { padding: 22px; }
-        .table-responsive { overflow-x: auto; border-radius: 10px; overflow: hidden; }
-        table { width: 100% !important; border-collapse: collapse !important; }
-        thead tr { background: var(--thbg) !important; }
-        thead th { background: var(--thbg) !important; color: var(--tmut) !important; padding: 13px 16px !important; font-size: .75rem !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .6px !important; border: none !important; }
-        tbody tr:nth-child(odd) td { background: var(--trodd) !important; }
-        tbody tr:nth-child(even) td { background: var(--treven) !important; }
-        tbody tr:hover td { background: var(--trhov) !important; }
-        tbody td { color: var(--tsub) !important; padding: 14px 16px !important; border-bottom: 1px solid var(--tbor) !important; border-top: none !important; border-left: none !important; border-right: none !important; vertical-align: middle; }
-        tbody tr:last-child td { border-bottom: none !important; }
-        .badge-cat { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .75rem; background: rgba(59, 130, 246, .18); color: #60a5fa; border: 1px solid rgba(59, 130, 246, .30); }
-        [data-theme="light"] .badge-cat { background: rgba(59, 130, 246, .10); color: #2563eb; border-color: rgba(59, 130, 246, .20); }
-        .s-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 500; }
-        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px !important; border: none !important; color: #fff !important; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; transition: .25s; }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        .btn-success { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 4px 12px rgba(16, 185, 129, .3); }
-        .btn-info { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, .3); }
-        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706) !important; }
-        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626) !important; box-shadow: 0 4px 12px rgba(239, 68, 68, .3); }
-        .btn-sm { padding: 6px 12px !important; font-size: 12px !important; }
-        .alert { border-radius: 10px !important; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 14px; }
-        .alert-success { background: rgba(16, 185, 129, .12) !important; color: #059669 !important; border: 1px solid rgba(16, 185, 129, .25) !important; }
-        .alert-danger { background: rgba(239, 68, 68, .12) !important; color: #dc2626 !important; border: 1px solid rgba(239, 68, 68, .25) !important; }
-        .search-wrap { position: relative; margin-bottom: 18px; }
-        .search-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--tmut); }
-        .search-wrap input { width: 100%; padding: 11px 14px 11px 40px; background: var(--sbg) !important; border: 1px solid var(--sbor) !important; border-radius: 10px; color: var(--tm) !important; font-family: 'Outfit', sans-serif; font-size: 14px; outline: none; transition: .3s; }
-        .search-wrap input:focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
-        .search-wrap input::placeholder { color: var(--tmut); }
-        .modal { display: none; position: fixed; z-index: 9999; inset: 0; background: rgba(0, 0, 0, .65); backdrop-filter: blur(6px); }
-        .modal-content { background: var(--mbg) !important; border: 1px solid var(--mbor) !important; border-radius: 16px; width: 90%; max-width: 860px; margin: 3% auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .4); max-height: 92vh; overflow-y: auto; }
-        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--mbor); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--mbg); z-index: 2; }
-        .modal-header h3 { color: var(--tm) !important; margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .close { color: var(--tmut); font-size: 26px; cursor: pointer; line-height: 1; }
-        .close:hover { color: var(--tm); }
-        .modal-body { padding: 24px; color: var(--tsub) !important; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 7px; color: var(--tsub) !important; font-weight: 600; font-size: 13px; }
-        .form-control { width: 100%; padding: 11px 14px; background: var(--ibg) !important; border: 1px solid var(--gb) !important; border-radius: 8px; color: var(--tm) !important; font-family: 'Outfit', sans-serif; font-size: 14px; transition: .3s; }
-        .form-control:focus { outline: none; border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
-        .form-control::placeholder { color: var(--tmut); }
-        /* View modal styles */
-        .modal-body h3 { color: #3b82f6; border-bottom: 1px solid var(--gb); padding-bottom: 10px; margin-bottom: 16px; }
-        .modal-body h4 { color: var(--tm) !important; margin: 20px 0 10px; }
-        .modal-body p { color: var(--tmut) !important; margin: 5px 0; }
-        .modal-body p strong { color: var(--tm) !important; }
-        .modal-body pre { background: var(--ibg) !important; border: none; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 16px; white-space: pre-wrap; font-family: 'Outfit', sans-serif; color: var(--tsub) !important; margin: 0; }
-        .info-block { background: var(--ibg) !important; border: 1px solid var(--gb); border-radius: 8px; padding: 14px; margin: 16px 0; }
-        .file-block { background: rgba(59, 130, 246, .10); border: 1px solid rgba(59, 130, 246, .25); border-radius: 8px; padding: 14px; margin-top: 16px; }
+        body::before { content:''; position:fixed; inset:0; z-index:-1; background:radial-gradient(circle at 15% 50%,rgba(59,130,246,.07),transparent 30%); pointer-events:none; }
+        .sidebar { background:var(--sb)!important; border-right:1px solid var(--gb)!important; backdrop-filter:blur(12px); }
+        .sidebar-header { border-bottom:1px solid var(--gb)!important; padding:20px; }
+        .sidebar-header p { color:var(--tmut)!important; margin:0; font-size:12px; }
+        .sidebar-menu { list-style:none; margin:0; padding:12px 0; }
+        .sidebar-menu li a { display:flex; align-items:center; gap:10px; padding:12px 20px; color:var(--sl)!important; text-decoration:none; border-left:3px solid transparent; font-size:14px; font-weight:500; transition:.25s; }
+        .sidebar-menu li a:hover, .sidebar-menu li a.active { background:var(--sa)!important; color:#3b82f6!important; border-left-color:#3b82f6; }
+        .main-content { background:transparent!important; }
+        .topbar { background:var(--tb)!important; border-bottom:1px solid var(--gb)!important; backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:64px; }
+        .topbar-left h2 { color:var(--tm)!important; font-size:20px; font-weight:700; margin:0; display:flex; align-items:center; gap:8px; }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        #theme-toggle-btn { all:unset; cursor:pointer; width:40px; height:40px; border-radius:50%; background:var(--togbg)!important; border:1px solid var(--gb)!important; color:var(--togc)!important; display:flex!important; align-items:center; justify-content:center; font-size:17px; box-shadow:0 2px 8px rgba(0,0,0,.15); flex-shrink:0; transition:all .25s; }
+        #theme-toggle-btn:hover { color:#3b82f6!important; transform:scale(1.1); }
+        #theme-toggle-btn i { pointer-events:none; color:inherit!important; font-size:17px; }
+        .user-info { display:flex; align-items:center; gap:10px; }
+        .user-info strong { color:var(--tm)!important; font-size:14px; display:block; }
+        .user-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#8b5cf6)!important; color:#fff!important; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; }
+        .btn-logout { padding:8px 18px; background:var(--lbg)!important; color:var(--lc)!important; border:1px solid var(--lbor)!important; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+        .content-wrapper { padding:24px; }
+        .card { background:var(--cb)!important; border:1px solid var(--gb)!important; border-radius:16px!important; box-shadow:0 4px 24px rgba(0,0,0,.10); margin-bottom:24px; overflow:hidden; }
+        .card-header { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--gb); }
+        .card-header h3 { color:var(--tm)!important; margin:0; font-size:16px; font-weight:600; display:flex; align-items:center; gap:8px; }
+        .card-body { padding:22px; }
+        .table-responsive { overflow-x:auto; border-radius:10px; overflow:hidden; }
+        table { width:100%!important; border-collapse:collapse!important; }
+        thead tr { background:var(--thbg)!important; }
+        thead th { background:var(--thbg)!important; color:var(--tmut)!important; padding:13px 16px!important; font-size:.75rem!important; font-weight:600!important; text-transform:uppercase!important; letter-spacing:.6px!important; border:none!important; }
+        tbody tr:nth-child(odd) td { background:var(--trodd)!important; }
+        tbody tr:nth-child(even) td { background:var(--treven)!important; }
+        tbody tr:hover td { background:var(--trhov)!important; }
+        tbody td { color:var(--tsub)!important; padding:14px 16px!important; border-bottom:1px solid var(--tbor)!important; border-top:none!important; border-left:none!important; border-right:none!important; vertical-align:middle; }
+        tbody tr:last-child td { border-bottom:none!important; }
+        .badge-cat { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.75rem; background:rgba(59,130,246,.18); color:#60a5fa; border:1px solid rgba(59,130,246,.30); }
+        [data-theme="light"] .badge-cat { background:rgba(59,130,246,.10); color:#2563eb; border-color:rgba(59,130,246,.20); }
+        .s-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.75rem; font-weight:500; }
+        .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:9px!important; border:none!important; color:#fff!important; font-weight:600; font-size:13px; cursor:pointer; text-decoration:none; transition:.25s; }
+        .btn:hover { filter:brightness(1.1); transform:translateY(-2px); }
+        .btn-success { background:linear-gradient(135deg,#10b981,#059669)!important; box-shadow:0 4px 12px rgba(16,185,129,.3); }
+        .btn-info { background:linear-gradient(135deg,#3b82f6,#2563eb)!important; box-shadow:0 4px 12px rgba(59,130,246,.3); }
+        .btn-warning { background:linear-gradient(135deg,#f59e0b,#d97706)!important; }
+        .btn-danger { background:linear-gradient(135deg,#ef4444,#dc2626)!important; box-shadow:0 4px 12px rgba(239,68,68,.3); }
+        .btn-sm { padding:6px 12px!important; font-size:12px!important; }
+        .alert { border-radius:10px!important; padding:12px 18px; margin-bottom:20px; display:flex; align-items:center; gap:10px; font-size:14px; }
+        .alert-success { background:rgba(16,185,129,.12)!important; color:#059669!important; border:1px solid rgba(16,185,129,.25)!important; }
+        .alert-danger { background:rgba(239,68,68,.12)!important; color:#dc2626!important; border:1px solid rgba(239,68,68,.25)!important; }
+        .search-wrap { position:relative; margin-bottom:18px; }
+        .search-wrap i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--tmut); }
+        .search-wrap input { width:100%; padding:11px 14px 11px 40px; background:var(--sbg)!important; border:1px solid var(--sbor)!important; border-radius:10px; color:var(--tm)!important; font-family:'Outfit',sans-serif; font-size:14px; outline:none; transition:.3s; }
+        .search-wrap input:focus { border-color:#3b82f6!important; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+        .search-wrap input::placeholder { color:var(--tmut); }
+
+        /* ─── Modal ─── */
+        .modal { display:none; position:fixed; z-index:9999; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); }
+        .modal-content { background:var(--mbg)!important; border:1px solid var(--mbor)!important; border-radius:16px; width:90%; max-width:780px; margin:3% auto; box-shadow:0 20px 50px rgba(0,0,0,.4); max-height:92vh; overflow-y:auto; }
+        .modal-header { padding:16px 22px; border-bottom:1px solid var(--mbor); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--mbg); z-index:2; border-radius:16px 16px 0 0; }
+        .modal-header h3 { color:var(--tm)!important; margin:0; font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        .modal-close { background:none; border:none; color:var(--tmut); font-size:22px; cursor:pointer; line-height:1; padding:0; }
+        .modal-close:hover { color:var(--tm); }
+        .modal-body { padding:22px; }
+
+        /* ─── Form ─── */
+        .form-group { margin-bottom:15px; }
+        .form-row-label { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+        .form-row-label .field-name { font-size:13px; font-weight:600; color:var(--tsub)!important; display:flex; align-items:center; gap:5px; }
+        .form-row-label .field-name i { font-size:11px; color:#3b82f6; }
+        .badge-req { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.25); }
+        .badge-opt { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(148,163,184,.12); color:#94a3b8; border:1px solid rgba(148,163,184,.20); }
+        .badge-info { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(59,130,246,.12); color:#60a5fa; border:1px solid rgba(59,130,246,.25); }
+        .form-control { width:100%; padding:10px 13px; background:var(--ibg)!important; border:1px solid var(--gb)!important; border-radius:8px; color:var(--tm)!important; font-family:'Outfit',sans-serif; font-size:14px; transition:border-color .25s,box-shadow .25s; }
+        .form-control:focus { outline:none; border-color:#3b82f6!important; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+        .form-control::placeholder { color:var(--tmut); }
+        textarea.form-control { resize:vertical; }
+        select.form-control option { background:var(--mbg); color:var(--tm); }
+        .field-hint { font-size:11.5px; color:var(--tmut); margin-top:5px; line-height:1.5; display:flex; align-items:flex-start; gap:5px; }
+        .field-hint i { font-size:11px; margin-top:2px; flex-shrink:0; }
+        .field-hint.blue i { color:#60a5fa; }
+        .field-hint.yellow i { color:#f59e0b; }
+
+        /* ─── Banner peringatan ─── */
+        .warn-banner { display:flex; gap:11px; align-items:flex-start; background:rgba(245,158,11,.10); border:1px solid rgba(245,158,11,.28); border-radius:10px; padding:12px 14px; margin-bottom:18px; }
+        .warn-banner .wi { color:#f59e0b; font-size:14px; margin-top:2px; flex-shrink:0; }
+        .warn-banner .wt { font-size:12px; color:#fbbf24; line-height:1.65; }
+        .warn-banner .wt strong { display:block; font-size:12.5px; color:#fcd34d; margin-bottom:3px; }
+
+        /* ─── Panduan langkah ─── */
+        .steps-guide { background:rgba(59,130,246,.07); border:1px solid rgba(59,130,246,.18); border-radius:8px; padding:11px 14px; margin-bottom:8px; }
+        .steps-guide p { color:var(--tmut)!important; font-size:12px; margin:0 0 6px; font-weight:600; }
+        .steps-guide ol { margin:0; padding-left:16px; }
+        .steps-guide ol li { color:#93c5fd; font-size:12px; line-height:1.7; }
+
+        /* ─── Kotak konfirmasi ─── */
+        .confirm-box { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.22); border-radius:10px; padding:12px 14px; margin-bottom:16px; }
+        .confirm-box label { display:flex; align-items:flex-start; gap:9px; cursor:pointer; margin:0; }
+        .confirm-box input[type="checkbox"] { margin-top:3px; accent-color:#ef4444; flex-shrink:0; }
+        .confirm-box .confirm-text { font-size:12px; color:#fca5a5; line-height:1.6; }
+        .confirm-box .confirm-text strong { color:#f87171; }
+
+        /* ─── View/edit modal ─── */
+        .modal-body h4 { color:var(--tm)!important; margin:18px 0 8px; }
+        .modal-body p { color:var(--tmut)!important; margin:5px 0; }
+        .modal-body p strong { color:var(--tm)!important; }
+        .modal-body pre { background:var(--ibg)!important; border:none; border-left:4px solid #3b82f6; border-radius:8px; padding:14px; white-space:pre-wrap; font-family:'Outfit',sans-serif; color:var(--tsub)!important; margin:0; font-size:13px; }
+        .info-block { background:var(--ibg)!important; border:1px solid var(--gb); border-radius:8px; padding:14px; margin:14px 0; }
+        .file-block { background:rgba(59,130,246,.10); border:1px solid rgba(59,130,246,.25); border-radius:8px; padding:12px 14px; margin-top:14px; }
+        .form-actions { display:flex; gap:10px; }
     </style>
 </head>
 <body>
-
 <div class="dashboard-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="../assets/images/logo.png" alt="Logo" style="width:220px;">
+            <img src="../assets/images/logo.png" alt="Logo" style="width:220px">
             <p>SOP Digital System</p>
         </div>
         <ul class="sidebar-menu">
@@ -225,12 +215,12 @@ $flash = getFlashMessage();
                 <h2><i class="fas fa-file-alt" style="color:#3b82f6"></i> Manajemen SOP</h2>
             </div>
             <div class="topbar-right">
-                <button type="button" id="theme-toggle-btn" title="Ganti Tema"><i class="fas fa-moon" id="theme-icon"></i></button>
+                <button type="button" id="theme-toggle-btn" title="Ganti Tema">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
                 <div class="user-info">
                     <div class="user-avatar"><?php echo strtoupper(substr(getNamaLengkap(), 0, 1)); ?></div>
-                    <div>
-                        <strong><?php echo getNamaLengkap(); ?></strong>
-                    </div>
+                    <div><strong><?php echo getNamaLengkap(); ?></strong></div>
                 </div>
                 <a href="../logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
@@ -246,7 +236,9 @@ $flash = getFlashMessage();
             <div class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-list"></i> Daftar SOP</h3>
-                    <button onclick="openModal('addModal')" class="btn btn-success"><i class="fas fa-plus"></i> Tambah SOP</button>
+                    <button onclick="openModal('addModal')" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Tambah SOP
+                    </button>
                 </div>
                 <div class="card-body">
                     <div class="search-wrap">
@@ -276,31 +268,26 @@ $flash = getFlashMessage();
                                     'Disetujui' => 'background:rgba(16,185,129,.20);color:#10b981;border:1px solid rgba(16,185,129,.4)',
                                     'Revisi'    => 'background:rgba(239,68,68,.20);color:#ef4444;border:1px solid rgba(239,68,68,.4)'
                                 ];
-                                
                                 while ($row = mysqli_fetch_assoc($result)):
-                                    $s = trim($row['status']);
+                                    $s     = trim($row['status']);
                                     $style = $ss[$s] ?? $ss['Revisi'];
                                 ?>
-                                    <tr>
-                                        <td><?php echo $no++; ?></td>
-                                        <td style="font-weight:600;color:var(--tm)!important"><?php echo htmlspecialchars($row['judul']); ?></td>
-                                        <td><span class="badge-cat"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td>
-                                        <td style="color:var(--tmut)!important"><?php echo substr(htmlspecialchars($row['deskripsi']), 0, 55) . '...'; ?></td>
-                                        <td><?php echo htmlspecialchars($row['creator']); ?></td>
-                                        <td><span class="s-badge" style="<?php echo $style; ?>"><?php echo $s; ?></span></td>
-                                        <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
-                                        <td>
-                                            <button onclick="viewSOP(<?php echo $row['id']; ?>)" class="btn btn-info btn-sm" title="Lihat"><i class="fas fa-eye"></i></button>
-                                            <button onclick="editSOP(<?php echo $row['id']; ?>)" class="btn btn-warning btn-sm" title="Edit/Review"><i class="fas fa-edit"></i></button>
-                                            <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>,'SOP')" class="btn btn-danger btn-sm" title="Hapus"><i class="fas fa-trash"></i></a>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                                
-                                <?php if (mysqli_num_rows($result) == 0): ?>
-                                    <tr>
-                                        <td colspan="8" style="text-align:center;padding:24px;color:var(--tmut)">Belum ada SOP</td>
-                                    </tr>
+                                <tr>
+                                    <td><?php echo $no++; ?></td>
+                                    <td style="font-weight:600;color:var(--tm)!important"><?php echo htmlspecialchars($row['judul']); ?></td>
+                                    <td><span class="badge-cat"><?php echo htmlspecialchars($row['nama_kategori']); ?></span></td>
+                                    <td style="color:var(--tmut)!important"><?php echo substr(htmlspecialchars($row['deskripsi']), 0, 55).'...'; ?></td>
+                                    <td><?php echo htmlspecialchars($row['creator']); ?></td>
+                                    <td><span class="s-badge" style="<?php echo $style; ?>"><?php echo $s; ?></span></td>
+                                    <td><?php echo date('d/m/Y', strtotime($row['created_at'])); ?></td>
+                                    <td>
+                                        <button onclick="viewSOP(<?php echo $row['id']; ?>)" class="btn btn-info btn-sm" title="Lihat"><i class="fas fa-eye"></i></button>
+                                        <button onclick="editSOP(<?php echo $row['id']; ?>)" class="btn btn-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></button>
+                                        <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirmDelete(<?php echo $row['id']; ?>,'SOP')" class="btn btn-danger btn-sm" title="Hapus"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <?php endwhile; if (mysqli_num_rows($result) == 0): ?>
+                                <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--tmut)">Belum ada SOP</td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -311,73 +298,162 @@ $flash = getFlashMessage();
     </main>
 </div>
 
+<!-- ═══════════ MODAL TAMBAH SOP ═══════════ -->
 <div id="addModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-plus"></i> Tambah SOP</h3>
-            <span class="close" onclick="closeModal('addModal')">&times;</span>
+            <h3><i class="fas fa-plus"></i> Tambah Dokumen SOP</h3>
+            <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
         </div>
         <div class="modal-body">
+
+            <div class="warn-banner">
+                <i class="fas fa-exclamation-triangle wi"></i>
+                <div class="wt">
+                    <strong>Perhatian! Baca Sebelum Menambah Dokumen SOP!</strong>
+                    SOP hanya boleh dibuat oleh pihak yang berwenang dan telah mendapat persetujuan.
+                    <strong>Pastikan dokumen belum tersedia ditulis lengkap dan akurat, serta mengikuti standar yang berlaku.<strong>
+                </div>
+            </div>
+
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
-                
-                <div class="form-group">
-                    <label>Judul SOP</label>
-                    <input type="text" name="judul" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Kategori</label>
-                    <select name="kategori_id" class="form-control" required>
-                        <option value="">-- Pilih --</option>
-                        <?php 
-                        mysqli_data_seek($result_cat, 0);
-                        while ($cat = mysqli_fetch_assoc($result_cat)): 
-                        ?>
+
+                <!-- Judul + Kategori -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                    <div class="form-group" style="margin-bottom:0">
+                        <div class="form-row-label">
+                            <span class="field-name"><i class="fas fa-heading"></i> Judul SOP</span>
+                            <span class="badge-req">Wajib di isi!</span>
+                        </div>
+                        <input type="text" name="judul" class="form-control"
+                               placeholder="Contoh: SOP Pengajuan Cuti" required>
+                        <div class="field-hint yellow">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Judul harus spesifik, hindari nama terlalu umum.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0">
+                        <div class="form-row-label">
+                            <span class="field-name"><i class="fas fa-folder"></i> Kategori</span>
+                            <span class="badge-req">Wajib di isi!</span>
+                        </div>
+                        <select name="kategori_id" class="form-control" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            <?php
+                            mysqli_data_seek($result_cat, 0);
+                            while ($cat = mysqli_fetch_assoc($result_cat)):
+                            ?>
                             <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nama_kategori']); ?></option>
-                        <?php endwhile; ?>
-                    </select>
+                            <?php endwhile; ?>
+                        </select>
+                        <div class="field-hint blue">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Jika kategori belum ada, hubungi Admin.</span>
+                        </div>
+                    </div>
                 </div>
-                
+
+                <!-- Deskripsi -->
+                <div class="form-group" style="margin-top:14px">
+                    <div class="form-row-label">
+                        <span class="field-name"><i class="fas fa-align-left"></i> Deskripsi Singkat</span>
+                        <span class="badge-opt">Opsional</span>
+                    </div>
+                    <textarea name="deskripsi" class="form-control" rows="3"
+                              placeholder="Jelaskan secara singkat tujuan dan ruang lingkup SOP ini..."></textarea>
+                    <div class="field-hint blue">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Tuliskan tujuan SOP, siapa yang terlibat, dan kapan digunakan.</span>
+                    </div>
+                </div>
+
+                <!-- Langkah Kerja -->
                 <div class="form-group">
-                    <label>Deskripsi</label>
-                    <textarea name="deskripsi" class="form-control" rows="3" placeholder="Deskripsi singkat..."></textarea>
+                    <div class="form-row-label">
+                        <span class="field-name"><i class="fas fa-list-ol"></i> Langkah-langkah Kerja</span>
+                        <span class="badge-req">Wajib di isi!</span>
+                    </div>
+                    <div class="steps-guide">
+                        <p><i class="fas fa-book-open" style="margin-right:5px"></i> Panduan Penulisan:</p>
+                        <ol>
+                            <li>Tulis setiap langkah secara berurutan, satu baris per langkah</li>
+                            <li>Awali dengan nomor atau kata kerja aktif</li>
+                            <li>Gunakan bahasa yang jelas, singkat, dan mudah dipahami</li>
+                        </ol>
+                    </div>
+                    <textarea name="langkah_kerja" class="form-control" rows="8" required
+                              placeholder="Silahkan isi langkah-langkah pembuatan SOP ini!"></textarea>
+                    <div class="field-hint yellow">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Langkah yang tidak lengkap akan dikembalikan untuk Revisi.</span>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Langkah-langkah</label>
-                    <textarea name="langkah_kerja" class="form-control" rows="8" required placeholder="Tulis langkah-langkah kerja..."></textarea>
+
+                <!-- Status + File -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                    <div class="form-group" style="margin-bottom:0">
+                        <div class="form-row-label">
+                            <span class="field-name"><i class="fas fa-tag"></i> Status Awal</span>
+                            <span class="badge-info">Perhatikan</span>
+                        </div>
+                        <select name="status" class="form-control">
+                            <option value="Draft">Draft</option>
+                            <option value="Review">Review</option>
+                            <option value="Disetujui">Disetujui</option>
+                            <option value="Revisi">Revisi</option>
+                        </select>
+                        <div class="field-hint blue">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Dokumen baru umumnya dimulai dari <strong style="color:#94a3b8">Draft</strong>. Status <strong style="color:#10b981">Disetujui</strong> hanya setelah review.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0">
+                        <div class="form-row-label">
+                            <span class="field-name"><i class="fas fa-paperclip"></i> File Lampiran</span>
+                            <span class="badge-opt">Opsional</span>
+                        </div>
+                        <input type="file" name="file_attachment" class="form-control">
+                        <div class="field-hint blue">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Format: PDF, DOCX, atau XLSX.</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Status</label>
-                    <select name="status" class="form-control">
-                        <option value="Draft">Draft</option>
-                        <option value="Review">Review</option>
-                        <option value="Disetujui">Disetujui</option>
-                        <option value="Revisi">Revisi</option>
-                    </select>
+
+                <!-- Konfirmasi -->
+                <div class="confirm-box" style="margin-top:16px">
+                    <label>
+                        <input type="checkbox" id="confirmSOP">
+                        <span class="confirm-text">
+                            Saya menyatakan dokumen SOP ini <strong>telah mendapat persetujuan</strong>,
+                            ditulis dengan lengkap dan akurat, serta <strong>belum tersedia</strong> di sistem ini.
+                        </span>
+                    </label>
                 </div>
-                
-                <div class="form-group">
-                    <label>File Lampiran</label>
-                    <input type="file" name="file_attachment" class="form-control">
-                </div>
-                
-                <div style="display:flex;gap:10px">
-                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
-                    <button type="button" onclick="closeModal('addModal')" class="btn btn-danger"><i class="fas fa-times"></i> Batal</button>
+
+                <div class="form-actions">
+                    <button type="submit" id="btnSimpanSOP" class="btn btn-success"
+                            disabled style="opacity:.45;cursor:not-allowed">
+                        <i class="fas fa-save"></i> Simpan SOP
+                    </button>
+                    <button type="button" onclick="closeModal('addModal')" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- MODAL VIEW -->
 <div id="viewModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h3><i class="fas fa-eye"></i> Detail SOP</h3>
-            <span class="close" onclick="closeModal('viewModal')">&times;</span>
+            <button class="modal-close" onclick="closeModal('viewModal')">&times;</button>
         </div>
         <div class="modal-body" id="viewContent">
             <div style="text-align:center;padding:30px;color:var(--tmut)">
@@ -387,11 +463,12 @@ $flash = getFlashMessage();
     </div>
 </div>
 
+<!-- MODAL EDIT -->
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Edit/Review SOP</h3>
-            <span class="close" onclick="closeModal('editModal')">&times;</span>
+            <h3><i class="fas fa-edit"></i> Edit / Review SOP</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
         </div>
         <div class="modal-body" id="editContent">
             <div style="text-align:center;padding:30px;color:var(--tmut)">
@@ -403,56 +480,47 @@ $flash = getFlashMessage();
 
 <script src="../assets/js/script.js"></script>
 <script>
-    (function() {
-        if (localStorage.getItem('theme') === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-    })();
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var btn = document.getElementById('theme-toggle-btn'),
-            icon = document.getElementById('theme-icon');
-
-        function sync() {
-            icon.className = document.documentElement.getAttribute('data-theme') === 'light' ? 'fas fa-sun' : 'fas fa-moon';
-        }
-        
+(function(){
+    if(localStorage.getItem('theme')==='light')
+        document.documentElement.setAttribute('data-theme','light');
+})();
+document.addEventListener('DOMContentLoaded', function(){
+    var btn  = document.getElementById('theme-toggle-btn'),
+        icon = document.getElementById('theme-icon');
+    function sync(){
+        icon.className = document.documentElement.getAttribute('data-theme')==='light'
+            ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    sync();
+    btn.addEventListener('click', function(){
+        var isLight = document.documentElement.getAttribute('data-theme')==='light';
+        if(isLight){ document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','dark'); }
+        else { document.documentElement.setAttribute('data-theme','light'); localStorage.setItem('theme','light'); }
         sync();
-        
-        btn.addEventListener('click', function() {
-            var light = document.documentElement.getAttribute('data-theme') === 'light';
-            if (light) {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light');
-            }
-            sync();
-        });
     });
 
-    function viewSOP(id) {
-        document.getElementById('viewContent').innerHTML = '<div style="text-align:center;padding:30px;color:var(--tmut)"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
-        openModal('viewModal');
-        
-        fetch('sop_ajax.php?action=view&id=' + id)
-            .then(r => r.text())
-            .then(d => {
-                document.getElementById('viewContent').innerHTML = d;
-            });
+    var chk  = document.getElementById('confirmSOP'),
+        save = document.getElementById('btnSimpanSOP');
+    if(chk && save){
+        chk.addEventListener('change', function(){
+            save.disabled      = !this.checked;
+            save.style.opacity = this.checked ? '1' : '.45';
+            save.style.cursor  = this.checked ? 'pointer' : 'not-allowed';
+        });
     }
-
-    function editSOP(id) {
-        document.getElementById('editContent').innerHTML = '<div style="text-align:center;padding:30px;color:var(--tmut)"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
-        openModal('editModal');
-        
-        fetch('sop_ajax.php?action=edit&id=' + id)
-            .then(r => r.text())
-            .then(d => {
-                document.getElementById('editContent').innerHTML = d;
-            });
-    }
+});
+function viewSOP(id){
+    document.getElementById('viewContent').innerHTML =
+        '<div style="text-align:center;padding:30px;color:var(--tmut)"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+    openModal('viewModal');
+    fetch('sop_ajax.php?action=view&id='+id).then(r=>r.text()).then(d=>{document.getElementById('viewContent').innerHTML=d;});
+}
+function editSOP(id){
+    document.getElementById('editContent').innerHTML =
+        '<div style="text-align:center;padding:30px;color:var(--tmut)"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+    openModal('editModal');
+    fetch('sop_ajax.php?action=edit&id='+id).then(r=>r.text()).then(d=>{document.getElementById('editContent').innerHTML=d;});
+}
 </script>
 </body>
 </html>

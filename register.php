@@ -656,7 +656,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="input-group" id="wrap-username">
                                 <i class="fas fa-user"></i>
                                 <input type="text" id="username" name="username" class="form-control"
-                                       placeholder="Buat username unik"
+                                       placeholder="karyawan@sinergi.co.id"
                                        value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" required autocomplete="off">
                             </div>
                         </div>
@@ -667,7 +667,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="input-group" id="wrap-email">
                                 <i class="fas fa-envelope"></i>
                                 <input type="email" id="email" name="email" class="form-control"
-                                       placeholder="contoh@email.com"
+                                       placeholder="karyawan@sinergi.co.id"
                                        value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>" required autocomplete="off">
                             </div>
                         </div>
@@ -762,43 +762,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         setupToggle('togglePassword', 'password');
         setupToggle('toggleKonfirmasi', 'konfirmasi_password');
-
-        // --- Password Strength ---
-        const passInput = document.getElementById('password');
-        const strengthBarWrap = document.getElementById('strengthBarWrap');
-        const strengthBar = document.getElementById('strengthBar');
-        const strengthLabel = document.getElementById('strengthLabel');
-
-        passInput.addEventListener('input', function () {
-            const val = this.value;
-            if (val.length === 0) {
-                strengthBarWrap.style.display = 'none';
-                strengthLabel.style.display = 'none';
-                return;
-            }
-            strengthBarWrap.style.display = 'block';
-            strengthLabel.style.display = 'block';
-
-            let score = 0;
-            if (val.length >= 6) score++;
-            if (val.length >= 10) score++;
-            if (/[A-Z]/.test(val)) score++;
-            if (/[0-9]/.test(val)) score++;
-            if (/[^A-Za-z0-9]/.test(val)) score++;
-
-            const levels = [
-                { w: '20%', color: '#ef4444', label: 'Sangat Lemah' },
-                { w: '40%', color: '#f97316', label: 'Lemah' },
-                { w: '60%', color: '#eab308', label: 'Cukup' },
-                { w: '80%', color: '#3b82f6', label: 'Kuat' },
-                { w: '100%', color: '#10b981', label: 'Sangat Kuat' },
-            ];
-            const lv = levels[Math.min(score - 1, 4)] || levels[0];
-            strengthBar.style.width = lv.w;
-            strengthBar.style.background = lv.color;
-            strengthLabel.textContent = 'Kekuatan: ' + lv.label;
-            strengthLabel.style.color = lv.color;
-        });
 
         // --- Validasi Konfirmasi Password (real-time) ---
         const konfInput = document.getElementById('konfirmasi_password');
