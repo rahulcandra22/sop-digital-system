@@ -89,10 +89,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $kid   = (int)$_POST['kategori_id'];
     $desk  = trim($_POST['deskripsi']);
     $lk    = trim($_POST['langkah_kerja']);
-    if (empty($judul) || empty($lk) || $kid == 0) {
-        setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
-        header('Location: sop.php'); exit();
+
+    // Validasi sisi server untuk tambah SOP baru
+    if ($_POST['action'] == 'add') {
+        if (empty($judul) || empty($lk) || $kid == 0) {
+            setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
+            header('Location: sop.php'); exit();
+        }
+        if (strlen($judul) < 5) {
+            setFlashMessage('danger', 'Judul minimal 5 karakter.');
+            header('Location: sop.php'); exit();
+        }
+        if (strlen($lk) < 20) {
+            setFlashMessage('danger', 'Langkah kerja minimal 20 karakter.');
+            header('Location: sop.php'); exit();
+        }
+    } else {
+        // Untuk edit, tetap gunakan validasi dasar
+        if (empty($judul) || empty($lk) || $kid == 0) {
+            setFlashMessage('danger', 'Field wajib tidak boleh kosong!');
+            header('Location: sop.php'); exit();
+        }
     }
+
     $judul   = mysqli_real_escape_string($conn, $judul);
     $desk    = mysqli_real_escape_string($conn, $desk);
     $lk      = mysqli_real_escape_string($conn, $lk);
@@ -254,6 +273,18 @@ if (isset($_GET['delete'])) {
         .field-hint i { font-size:11px; margin-top:2px; flex-shrink:0; }
         .field-hint.blue i { color:#60a5fa; }
         .field-hint.yellow i { color:#f59e0b; }
+        /* NEW: Field error style */
+        .field-error {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i {
+            font-size: 10px;
+        }
         .warn-banner { display:flex; gap:11px; align-items:flex-start; background:rgba(245,158,11,.10); border:1px solid rgba(245,158,11,.28); border-radius:10px; padding:12px 14px; margin-bottom:18px; }
         .warn-banner .wi { color:#f59e0b; font-size:14px; margin-top:2px; flex-shrink:0; }
         .warn-banner .wt { font-size:12px; color:#fbbf24; line-height:1.65; }
@@ -360,7 +391,7 @@ if (isset($_GET['delete'])) {
         </div>
         <ul class="sidebar-menu">
             <li><a href="dashboard.php"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-            <li><a href="kategori.php"><i class="fas fa-folder"></i><span>Kategori SOP</span></a></li>
+            <li><a href="kategori.php"><i class="fas fa-folder"></i><span>Manajemen Kategori</span></a></li>
             <li><a href="sop.php" class="active"><i class="fas fa-file-alt"></i><span>Manajemen SOP</span></a></li>
             <li><a href="users.php"><i class="fas fa-users"></i><span>Manajemen User</span></a></li>
         </ul>
@@ -486,7 +517,7 @@ if (isset($_GET['delete'])) {
                 </div>
             </div>
 
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="formAddSOP">
                 <input type="hidden" name="action" value="add">
 
                 <!-- Judul + Kategori -->
@@ -496,11 +527,12 @@ if (isset($_GET['delete'])) {
                             <span class="field-name"><i class="fas fa-heading"></i> Judul SOP</span>
                             <span class="badge-req">Wajib di isi!</span>
                         </div>
-                        <input type="text" name="judul" class="form-control"
+                        <input type="text" name="judul" id="add_judul" class="form-control"
                                placeholder="Contoh: SOP Pengajuan Cuti" required>
+                        <div class="field-error" id="error-judul" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                        </div>
                         <div class="field-hint yellow">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>Judul harus spesifik. Hindari nama terlalu umum.</span>
                         </div>
                     </div>
 
@@ -509,7 +541,7 @@ if (isset($_GET['delete'])) {
                             <span class="field-name"><i class="fas fa-folder"></i> Kategori</span>
                             <span class="badge-req">Wajib di isi!</span>
                         </div>
-                        <select name="kategori_id" class="form-control" required>
+                        <select name="kategori_id" id="add_kategori" class="form-control" required>
                             <option value="">-- Pilih Kategori --</option>
                             <?php
                             mysqli_data_seek($result_cat, 0);
@@ -518,9 +550,8 @@ if (isset($_GET['delete'])) {
                             <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nama_kategori']); ?></option>
                             <?php endwhile; ?>
                         </select>
-                        <div class="field-hint blue">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Pilih kategori yang cocok dengan judul SOP anda.</span>
+                        <div class="field-error" id="error-kategori" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span></span>
                         </div>
                     </div>
                 </div>
@@ -534,8 +565,6 @@ if (isset($_GET['delete'])) {
                     <textarea name="deskripsi" class="form-control" rows="3"
                               placeholder="Silahkan isi tujuan dan deskripsi dalam pembuatan SOP ini..."></textarea>
                     <div class="field-hint blue">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>Tuliskan tujuan SOP, siapa yang terlibat, dan kapan prosedur ini digunakan.</span>
                     </div>
                 </div>
 
@@ -553,11 +582,12 @@ if (isset($_GET['delete'])) {
                             <li>Gunakan bahasa yang jelas, singkat, dan mudah dipahami</li>
                         </ol>
                     </div>
-                    <textarea name="langkah_kerja" class="form-control" rows="8" required
+                    <textarea name="langkah_kerja" id="add_langkah" class="form-control" rows="8" required
                               placeholder="Silahkan isi langkah-langkah pembuatan SOP ini!"></textarea>
+                    <div class="field-error" id="error-langkah" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                     <div class="field-hint yellow">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>Langkah yang tidak lengkap akan dikembalikan untuk Revisi.</span>
                     </div>
                 </div>
 
@@ -607,7 +637,7 @@ if (isset($_GET['delete'])) {
                 <div class="form-actions">
                     <button type="submit" id="btnSimpanSOP" class="btn btn-success"
                             disabled style="opacity:.45;cursor:not-allowed">
-                        <i class="fas fa-save"></i> Simpan SOP
+                        <i class="fas fa-save"></i> Simpan
                     </button>
                     <button type="button" onclick="closeModal('addModal')" class="btn btn-danger">
                         <i class="fas fa-times"></i> Batal
@@ -740,7 +770,7 @@ if (isset($_GET['delete'])) {
 
                 <div class="form-actions">
                     <button type="submit" id="btnSimpanEditSOP" class="btn btn-success" disabled style="opacity:.45;cursor:not-allowed">
-                        <i class="fas fa-save"></i> Update SOP
+                        <i class="fas fa-save"></i> Simpan Perubahan
                     </button>
                     <button type="button" onclick="closeModal('editModal')" class="btn btn-danger">
                         <i class="fas fa-times"></i> Batal
@@ -860,9 +890,7 @@ document.addEventListener('DOMContentLoaded', function(){
         save = document.getElementById('btnSimpanSOP');
     if(chk && save){
         chk.addEventListener('change', function(){
-            save.disabled      = !this.checked;
-            save.style.opacity = this.checked ? '1' : '.45';
-            save.style.cursor  = this.checked ? 'pointer' : 'not-allowed';
+            updateSubmitButton(); // will also run validation
         });
     }
 
@@ -876,6 +904,78 @@ document.addEventListener('DOMContentLoaded', function(){
             saveEdit.style.cursor  = this.checked ? 'pointer' : 'not-allowed';
         });
     }
+
+    // === VALIDATION FOR ADD FORM ===
+    const addJudul = document.getElementById('add_judul');
+    const addKategori = document.getElementById('add_kategori');
+    const addLangkah = document.getElementById('add_langkah');
+    const errorJudul = document.getElementById('error-judul');
+    const errorKategori = document.getElementById('error-kategori');
+    const errorLangkah = document.getElementById('error-langkah');
+    const addForm = document.getElementById('formAddSOP');
+
+    function validateAddForm() {
+        let isValid = true;
+
+        // Judul
+        const judulVal = addJudul.value.trim();
+        if (judulVal.length < 5) {
+            errorJudul.style.display = 'flex';
+            errorJudul.querySelector('span').textContent = 'Judul minimal 5 karakter.';
+            isValid = false;
+        } else {
+            errorJudul.style.display = 'none';
+        }
+
+        // Kategori
+        if (!addKategori.value) {
+            errorKategori.style.display = 'flex';
+            errorKategori.querySelector('span').textContent = 'Pilih kategori yang cocok dengan judul SOP anda.';
+            isValid = false;
+        } else {
+            errorKategori.style.display = 'none';
+        }
+
+        // Langkah kerja
+        const langkahVal = addLangkah.value.trim();
+        if (langkahVal.length < 20) {
+            errorLangkah.style.display = 'flex';
+            errorLangkah.querySelector('span').textContent = 'Langkah kerja minimal 20 karakter.';
+            isValid = false;
+        } else {
+            errorLangkah.style.display = 'none';
+        }
+
+        return isValid;
+    }
+
+    function updateSubmitButton() {
+        const chk = document.getElementById('confirmSOP');
+        const btn = document.getElementById('btnSimpanSOP');
+        const valid = validateAddForm();
+        const enabled = chk.checked && valid;
+        btn.disabled = !enabled;
+        btn.style.opacity = enabled ? '1' : '.45';
+        btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+    }
+
+    // Event listeners for real-time validation
+    addJudul.addEventListener('input', updateSubmitButton);
+    addKategori.addEventListener('change', updateSubmitButton);
+    addLangkah.addEventListener('input', updateSubmitButton);
+
+    // Prevent form submission if validation fails (additional security)
+    addForm.addEventListener('submit', function(e) {
+        if (!validateAddForm() || !document.getElementById('confirmSOP').checked) {
+            e.preventDefault();
+            // Optionally show a general error message
+            alert('Harap periksa kembali form: pastikan semua field wajib terisi dengan benar dan konfirmasi telah dicentang.');
+            return false;
+        }
+    });
+
+    // Initial call to set button state
+    updateSubmitButton();
 
     // === DROPDOWN LOGIC ===
     var trigger = document.getElementById('userTrigger'),

@@ -75,6 +75,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $nama     = mysqli_real_escape_string($conn, $_POST['nama_lengkap']);
         $role     = $_POST['role'];
         
+        // Validasi sisi server
+        if (strlen($username) < 3) {
+            setFlashMessage('danger', 'Username minimal 3 karakter.');
+            header('Location: users.php'); exit();
+        }
+        if (strlen($_POST['password']) < 6) {
+            setFlashMessage('danger', 'Password minimal 6 karakter.');
+            header('Location: users.php'); exit();
+        }
+        if (strlen($nama) < 3) {
+            setFlashMessage('danger', 'Nama lengkap minimal 3 karakter.');
+            header('Location: users.php'); exit();
+        }
+        // Cek duplikasi username
+        $cek = mysqli_query($conn, "SELECT id FROM users WHERE username = '$username'");
+        if (mysqli_num_rows($cek) > 0) {
+            setFlashMessage('danger', 'Username sudah digunakan.');
+            header('Location: users.php'); exit();
+        }
+
         if (mysqli_query($conn, "INSERT INTO users (username, password, role, nama_lengkap) VALUES ('$username', '$password', '$role', '$nama')")) {
             setFlashMessage('success', 'User ditambahkan!');
         } else {
@@ -89,6 +109,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $nama     = mysqli_real_escape_string($conn, $_POST['nama_lengkap']);
         $role     = $_POST['role'];
         $pu       = '';
+        
+        // Validasi sisi server
+        if (strlen($username) < 3) {
+            setFlashMessage('danger', 'Username minimal 3 karakter.');
+            header('Location: users.php'); exit();
+        }
+        if (strlen($nama) < 3) {
+            setFlashMessage('danger', 'Nama lengkap minimal 3 karakter.');
+            header('Location: users.php'); exit();
+        }
+        if (!empty($_POST['password']) && strlen($_POST['password']) < 6) {
+            setFlashMessage('danger', 'Password minimal 6 karakter.');
+            header('Location: users.php'); exit();
+        }
+        // Cek duplikasi username kecuali dirinya sendiri
+        $cek = mysqli_query($conn, "SELECT id FROM users WHERE username = '$username' AND id != $id");
+        if (mysqli_num_rows($cek) > 0) {
+            setFlashMessage('danger', 'Username sudah digunakan.');
+            header('Location: users.php'); exit();
+        }
         
         if (!empty($_POST['password'])) {
             $pw = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -243,6 +283,18 @@ if (isset($_GET['delete'])) {
         .confirm-box .confirm-text { font-size:12px; color:#fca5a5; line-height:1.6; }
         .confirm-box .confirm-text strong { color:#f87171; }
 
+        /* NEW: Field error style */
+        .field-error {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i {
+            font-size: 10px;
+        }
 
         /* === NEW STYLES: Dropdown & Profile Modals === */
         .user-info-wrap{ position:relative; }
@@ -329,7 +381,7 @@ if (isset($_GET['delete'])) {
         </div>
         <ul class="sidebar-menu">
             <li><a href="dashboard.php"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-            <li><a href="kategori.php"><i class="fas fa-folder"></i><span>Kategori SOP</span></a></li>
+            <li><a href="kategori.php"><i class="fas fa-folder"></i><span>Manajemen Kategori</span></a></li>
             <li><a href="sop.php"><i class="fas fa-file-alt"></i><span>Manajemen SOP</span></a></li>
             <li><a href="users.php" class="active"><i class="fas fa-users"></i><span>Manajemen User</span></a></li>
         </ul>
@@ -444,23 +496,36 @@ if (isset($_GET['delete'])) {
                 </div>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="formAddUser">
                 <input type="hidden" name="action" value="add">
+                
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" name="username" class="form-control" required>
+                    <input type="text" name="username" id="add_username" class="form-control" required>
+                    <div class="field-error" id="error-add-username" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" class="form-control" required>
+                    <input type="password" name="password" id="add_password" class="form-control" required>
+                    <div class="field-error" id="error-add-password" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Nama Lengkap</label>
-                    <input type="text" name="nama_lengkap" class="form-control" required>
+                    <input type="text" name="nama_lengkap" id="add_nama" class="form-control" required>
+                    <div class="field-error" id="error-add-nama" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Role</label>
-                    <select name="role" class="form-control" required>
+                    <select name="role" id="add_role" class="form-control" required>
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
@@ -503,22 +568,34 @@ if (isset($_GET['delete'])) {
                 </div>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="formEditUser">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="edit_id">
                 
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" name="username" id="edit_username" class="form-control" required>
+                    <div class="field-error" id="error-edit-username" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Password <small style="color:var(--tmut);font-weight:400">(kosongkan jika tidak diubah)</small></label>
                     <input type="password" name="password" id="edit_password" class="form-control">
+                    <div class="field-error" id="error-edit-password" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Nama Lengkap</label>
                     <input type="text" name="nama_lengkap" id="edit_nama_lengkap" class="form-control" required>
+                    <div class="field-error" id="error-edit-nama" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Role</label>
                     <select name="role" id="edit_role" class="form-control" required>
@@ -538,7 +615,7 @@ if (isset($_GET['delete'])) {
                 </div>
 
                 <div style="display:flex;gap:10px">
-                    <button type="submit" id="btnEditUser" class="btn btn-success" disabled style="opacity:.45;cursor:not-allowed"><i class="fas fa-save"></i> Update</button>
+                    <button type="submit" id="btnEditUser" class="btn btn-success" disabled style="opacity:.45;cursor:not-allowed"><i class="fas fa-save"></i> Simpan Perubahan</button>
                     <button type="button" onclick="closeModal('editModal')" class="btn btn-danger"><i class="fas fa-times"></i> Batal</button>
                 </div>
             </form>
@@ -741,29 +818,145 @@ if (isset($_GET['delete'])) {
             });
         });
 
-        // === USER MANAGEMENT CONFIRMATION LOGIC ===
-        var chkAdd = document.getElementById('confirmAddUser'),
-            btnAdd = document.getElementById('btnAddUser'),
-            chkEdit = document.getElementById('confirmEditUser'),
-            btnEdit = document.getElementById('btnEditUser');
+        // === VALIDATION FOR ADD USER FORM ===
+        const addUsername = document.getElementById('add_username');
+        const addPassword = document.getElementById('add_password');
+        const addNama = document.getElementById('add_nama');
+        const addRole = document.getElementById('add_role'); // not strictly needed but included
+        const errorAddUsername = document.getElementById('error-add-username');
+        const errorAddPassword = document.getElementById('error-add-password');
+        const errorAddNama = document.getElementById('error-add-nama');
+        const chkAdd = document.getElementById('confirmAddUser');
+        const btnAdd = document.getElementById('btnAddUser');
+        const addForm = document.getElementById('formAddUser');
 
-        // Listener Add User
-        if(chkAdd && btnAdd){
-            chkAdd.addEventListener('change', function(){
-                btnAdd.disabled = !this.checked;
-                btnAdd.style.opacity = this.checked ? '1' : '.45';
-                btnAdd.style.cursor = this.checked ? 'pointer' : 'not-allowed';
-            });
+        function validateAddForm() {
+            let isValid = true;
+
+            // Username
+            const usernameVal = addUsername.value.trim();
+            if (usernameVal.length < 3) {
+                errorAddUsername.style.display = 'flex';
+                errorAddUsername.querySelector('span').textContent = 'Username minimal 3 karakter.';
+                isValid = false;
+            } else {
+                errorAddUsername.style.display = 'none';
+            }
+
+            // Password
+            const passwordVal = addPassword.value.trim();
+            if (passwordVal.length < 6) {
+                errorAddPassword.style.display = 'flex';
+                errorAddPassword.querySelector('span').textContent = 'Password minimal 6 karakter.';
+                isValid = false;
+            } else {
+                errorAddPassword.style.display = 'none';
+            }
+
+            // Nama lengkap
+            const namaVal = addNama.value.trim();
+            if (namaVal.length < 3) {
+                errorAddNama.style.display = 'flex';
+                errorAddNama.querySelector('span').textContent = 'Nama lengkap minimal 3 karakter.';
+                isValid = false;
+            } else {
+                errorAddNama.style.display = 'none';
+            }
+
+            return isValid;
         }
 
-        // Listener Edit User
-        if(chkEdit && btnEdit){
-            chkEdit.addEventListener('change', function(){
-                btnEdit.disabled = !this.checked;
-                btnEdit.style.opacity = this.checked ? '1' : '.45';
-                btnEdit.style.cursor = this.checked ? 'pointer' : 'not-allowed';
-            });
+        function updateAddButton() {
+            const valid = validateAddForm();
+            const enabled = chkAdd.checked && valid;
+            btnAdd.disabled = !enabled;
+            btnAdd.style.opacity = enabled ? '1' : '.45';
+            btnAdd.style.cursor = enabled ? 'pointer' : 'not-allowed';
         }
+
+        addUsername.addEventListener('input', updateAddButton);
+        addPassword.addEventListener('input', updateAddButton);
+        addNama.addEventListener('input', updateAddButton);
+        chkAdd.addEventListener('change', updateAddButton);
+        updateAddButton(); // initial state
+
+        addForm.addEventListener('submit', function(e) {
+            if (!validateAddForm() || !chkAdd.checked) {
+                e.preventDefault();
+                alert('Harap periksa kembali: semua field harus diisi dengan benar (minimal 3 karakter untuk username dan nama, password minimal 6 karakter) dan konfirmasi harus dicentang.');
+                return false;
+            }
+        });
+
+        // === VALIDATION FOR EDIT USER FORM ===
+        const editUsername = document.getElementById('edit_username');
+        const editPassword = document.getElementById('edit_password');
+        const editNama = document.getElementById('edit_nama_lengkap');
+        const editRole = document.getElementById('edit_role');
+        const errorEditUsername = document.getElementById('error-edit-username');
+        const errorEditPassword = document.getElementById('error-edit-password');
+        const errorEditNama = document.getElementById('error-edit-nama');
+        const chkEdit = document.getElementById('confirmEditUser');
+        const btnEdit = document.getElementById('btnEditUser');
+        const editForm = document.getElementById('formEditUser');
+
+        function validateEditForm() {
+            let isValid = true;
+
+            // Username
+            const usernameVal = editUsername.value.trim();
+            if (usernameVal.length < 3) {
+                errorEditUsername.style.display = 'flex';
+                errorEditUsername.querySelector('span').textContent = 'Username minimal 3 karakter.';
+                isValid = false;
+            } else {
+                errorEditUsername.style.display = 'none';
+            }
+
+            // Password (optional, but if filled must be >=6)
+            const passwordVal = editPassword.value.trim();
+            if (passwordVal.length > 0 && passwordVal.length < 6) {
+                errorEditPassword.style.display = 'flex';
+                errorEditPassword.querySelector('span').textContent = 'Password minimal 6 karakter jika diisi.';
+                isValid = false;
+            } else {
+                errorEditPassword.style.display = 'none';
+            }
+
+            // Nama lengkap
+            const namaVal = editNama.value.trim();
+            if (namaVal.length < 3) {
+                errorEditNama.style.display = 'flex';
+                errorEditNama.querySelector('span').textContent = 'Nama lengkap minimal 3 karakter.';
+                isValid = false;
+            } else {
+                errorEditNama.style.display = 'none';
+            }
+
+            return isValid;
+        }
+
+        function updateEditButton() {
+            const valid = validateEditForm();
+            const enabled = chkEdit.checked && valid;
+            btnEdit.disabled = !enabled;
+            btnEdit.style.opacity = enabled ? '1' : '.45';
+            btnEdit.style.cursor = enabled ? 'pointer' : 'not-allowed';
+        }
+
+        editUsername.addEventListener('input', updateEditButton);
+        editPassword.addEventListener('input', updateEditButton);
+        editNama.addEventListener('input', updateEditButton);
+        chkEdit.addEventListener('change', updateEditButton);
+        updateEditButton(); // initial state
+
+        editForm.addEventListener('submit', function(e) {
+            if (!validateEditForm() || !chkEdit.checked) {
+                e.preventDefault();
+                alert('Harap periksa kembali: semua field harus diisi dengan benar (username dan nama minimal 3 karakter, password jika diisi minimal 6 karakter) dan konfirmasi harus dicentang.');
+                return false;
+            }
+        });
     });
 
     // === EXISTING: FUNCTIONS ===
@@ -775,11 +968,18 @@ if (isset($_GET['delete'])) {
                 var c = document.getElementById('confirmAddUser');
                 var b = document.getElementById('btnAddUser');
                 if(c) { c.checked = false; b.disabled = true; b.style.opacity = '.45'; b.style.cursor = 'not-allowed'; }
+                // Reset error displays
+                document.getElementById('error-add-username').style.display = 'none';
+                document.getElementById('error-add-password').style.display = 'none';
+                document.getElementById('error-add-nama').style.display = 'none';
             }
             if(id === 'editModal') {
                 var c = document.getElementById('confirmEditUser');
                 var b = document.getElementById('btnEditUser');
                 if(c) { c.checked = false; b.disabled = true; b.style.opacity = '.45'; b.style.cursor = 'not-allowed'; }
+                document.getElementById('error-edit-username').style.display = 'none';
+                document.getElementById('error-edit-password').style.display = 'none';
+                document.getElementById('error-edit-nama').style.display = 'none';
             }
         }
     }

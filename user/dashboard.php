@@ -366,7 +366,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
             <div class="card" id="status-sop">
                 <div class="card-header">
                     <h3><i class="fas fa-history"></i> Status SOP Saya</h3>
-                    <a href="browse_sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Cari SOP</a>
+                    <a href="browse_sop.php" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> Lihat SOP</a>
                 </div>
                 <div class="card-body" style="padding:0;">
                     <div class="table-responsive">

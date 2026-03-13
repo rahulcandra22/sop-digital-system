@@ -71,18 +71,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $nama = trim($_POST['nama_kategori']);
     $desk = trim($_POST['deskripsi']);
+
+    // Validasi sisi server untuk tambah/edit
     if (empty($nama)) {
         setFlashMessage('danger', 'Nama Kategori tidak boleh kosong!');
         header('Location: kategori.php'); exit();
     }
+    if (strlen($nama) < 3) {
+        setFlashMessage('danger', 'Nama Kategori minimal 3 karakter.');
+        header('Location: kategori.php'); exit();
+    }
+
     $nama = mysqli_real_escape_string($conn, $nama);
     $desk = mysqli_real_escape_string($conn, $desk);
+
     if ($_POST['action'] == 'add') {
+        // Cek duplikasi nama kategori
+        $cek = mysqli_query($conn, "SELECT id FROM categories WHERE nama_kategori = '$nama'");
+        if (mysqli_num_rows($cek) > 0) {
+            setFlashMessage('danger', 'Nama kategori sudah ada. Gunakan nama lain.');
+            header('Location: kategori.php'); exit();
+        }
         if (mysqli_query($conn, "INSERT INTO categories (nama_kategori,deskripsi) VALUES ('$nama','$desk')"))
             setFlashMessage('success', 'Kategori berhasil ditambahkan!');
         else setFlashMessage('danger', 'Gagal menambahkan kategori!');
     } elseif ($_POST['action'] == 'edit') {
         $id = (int)$_POST['id'];
+        // Cek duplikasi kecuali dirinya sendiri
+        $cek = mysqli_query($conn, "SELECT id FROM categories WHERE nama_kategori = '$nama' AND id != $id");
+        if (mysqli_num_rows($cek) > 0) {
+            setFlashMessage('danger', 'Nama kategori sudah ada. Gunakan nama lain.');
+            header('Location: kategori.php'); exit();
+        }
         if (mysqli_query($conn, "UPDATE categories SET nama_kategori='$nama',deskripsi='$desk' WHERE id=$id"))
             setFlashMessage('success', 'Kategori berhasil diupdate!');
         else setFlashMessage('danger', 'Gagal mengupdate kategori!');
@@ -91,6 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 }
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
+    // Cek apakah kategori digunakan di SOP
+    $cek = mysqli_query($conn, "SELECT id FROM sop WHERE kategori_id = $id LIMIT 1");
+    if (mysqli_num_rows($cek) > 0) {
+        setFlashMessage('danger', 'Kategori tidak bisa dihapus karena masih digunakan oleh SOP.');
+        header('Location: kategori.php'); exit();
+    }
     if (mysqli_query($conn, "DELETE FROM categories WHERE id=$id"))
         setFlashMessage('success', 'Kategori berhasil dihapus!');
     else setFlashMessage('danger', 'Gagal menghapus kategori!');
@@ -210,6 +236,18 @@ if (isset($_GET['delete'])) {
         .field-hint i { font-size: 11px; margin-top: 2px; flex-shrink: 0; }
         .field-hint.blue i { color: #60a5fa; }
         .field-hint.yellow i { color: #f59e0b; }
+        /* NEW: Field error style */
+        .field-error {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i {
+            font-size: 10px;
+        }
         .warn-banner { display: flex; gap: 11px; align-items: flex-start; background: rgba(245,158,11,.10); border: 1px solid rgba(245,158,11,.28); border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; }
         .warn-banner .wi { color: #f59e0b; font-size: 14px; margin-top: 2px; flex-shrink: 0; }
         .warn-banner .wt { font-size: 12px; color: #fbbf24; line-height: 1.65; }
@@ -306,7 +344,7 @@ if (isset($_GET['delete'])) {
         </div>
         <ul class="sidebar-menu">
             <li><a href="dashboard.php"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-            <li><a href="kategori.php" class="active"><i class="fas fa-folder"></i><span>Kategori SOP</span></a></li>
+            <li><a href="kategori.php" class="active"><i class="fas fa-folder"></i><span>Manajemen Kategori</span></a></li>
             <li><a href="sop.php"><i class="fas fa-file-alt"></i><span>Manajemen SOP</span></a></li>
             <li><a href="users.php"><i class="fas fa-users"></i><span>Manajemen User</span></a></li>
         </ul>
@@ -413,7 +451,7 @@ if (isset($_GET['delete'])) {
                 </div>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="formAddKategori">
                 <input type="hidden" name="action" value="add">
 
                 <div class="form-group">
@@ -421,11 +459,12 @@ if (isset($_GET['delete'])) {
                         <span class="field-name"><i class="fas fa-tag"></i> Nama Kategori</span>
                         <span class="badge-req">Wajib di isi!</span>
                     </div>
-                    <input type="text" name="nama_kategori" class="form-control"
+                    <input type="text" name="nama_kategori" id="add_nama" class="form-control"
                            placeholder="Contoh: Keuangan, Operasional, dll..." required>
+                    <div class="field-error" id="error-nama" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                     <div class="field-hint yellow">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>Gunakan nama yang jelas dan spesifik. Hindari nama seperti "Lainnya" atau "Umum".</span>
                     </div>
                 </div>
 
@@ -434,11 +473,9 @@ if (isset($_GET['delete'])) {
                         <span class="field-name"><i class="fas fa-align-left"></i> Deskripsi</span>
                         <span class="badge-opt">Opsional</span>
                     </div>
-                    <textarea name="deskripsi" class="form-control" rows="4"
+                    <textarea name="deskripsi" id="add_deskripsi" class="form-control" rows="4"
                               placeholder="Silahkan isi tujuan dan deskripsi dalam pembuatan SOP ini..."></textarea>
                     <div class="field-hint blue">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>Isi agar pengguna lain mengerti jenis SOP yang masuk ke kategori ini.</span>
                     </div>
                 </div>
 
@@ -586,16 +623,47 @@ document.addEventListener('DOMContentLoaded', function(){
         sync();
     });
 
-    // === CATEGORY CHECKBOX LOGIC ===
-    var chk  = document.getElementById('confirmAdd'),
-        save = document.getElementById('btnSimpan');
-    if(chk && save){
-        chk.addEventListener('change', function(){
-            save.disabled      = !this.checked;
-            save.style.opacity = this.checked ? '1' : '.45';
-            save.style.cursor  = this.checked ? 'pointer' : 'not-allowed';
-        });
+    // === VALIDATION FOR ADD CATEGORY ===
+    const addNama = document.getElementById('add_nama');
+    const errorNama = document.getElementById('error-nama');
+    const addForm = document.getElementById('formAddKategori');
+    const chk = document.getElementById('confirmAdd');
+    const saveBtn = document.getElementById('btnSimpan');
+
+    function validateAddForm() {
+        let isValid = true;
+        const namaVal = addNama.value.trim();
+
+        if (namaVal.length < 3) {
+            errorNama.style.display = 'flex';
+            errorNama.querySelector('span').textContent = 'Nama kategori minimal 3 karakter.';
+            isValid = false;
+        } else {
+            errorNama.style.display = 'none';
+        }
+        return isValid;
     }
+
+    function updateSubmitButton() {
+        const valid = validateAddForm();
+        const enabled = chk.checked && valid;
+        saveBtn.disabled = !enabled;
+        saveBtn.style.opacity = enabled ? '1' : '.45';
+        saveBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+    }
+
+    addNama.addEventListener('input', updateSubmitButton);
+    chk.addEventListener('change', updateSubmitButton);
+    updateSubmitButton(); // initial state
+
+    // Prevent form submission if validation fails
+    addForm.addEventListener('submit', function(e) {
+        if (!validateAddForm() || !chk.checked) {
+            e.preventDefault();
+            alert('Harap periksa kembali: nama kategori minimal 3 karakter dan konfirmasi harus dicentang.');
+            return false;
+        }
+    });
 
     // === DROPDOWN LOGIC ===
     var trigger = document.getElementById('userTrigger'),
@@ -620,7 +688,6 @@ document.addEventListener('DOMContentLoaded', function(){
         document.getElementById(id).classList.add('show');
         dropdown.classList.remove('show'); 
         chevron.classList.remove('open');
-        // Reset alerts
         var alertBox = document.querySelector('#' + id + ' .modal-alert');
         if(alertBox) alertBox.className = 'modal-alert';
     }

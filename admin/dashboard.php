@@ -302,7 +302,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
         </div>
         <ul class="sidebar-menu">
             <li><a href="dashboard.php" class="active"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
-            <li><a href="kategori.php"><i class="fas fa-folder"></i><span>Kategori SOP</span></a></li>
+            <li><a href="kategori.php"><i class="fas fa-folder"></i><span>Manajemen Kategori</span></a></li>
             <li><a href="sop.php"><i class="fas fa-file-alt"></i><span>Manajemen SOP</span></a></li>
             <li><a href="users.php"><i class="fas fa-users"></i><span>Manajemen User</span></a></li>
         </ul>

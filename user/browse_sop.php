@@ -52,7 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $desk  = mysqli_real_escape_string($conn, trim($_POST['deskripsi']));
     $lk    = mysqli_real_escape_string($conn, trim($_POST['langkah_kerja']));
     $st    = 'Review'; $cb = $user_id; $fa = '';
+
+    // Validasi sisi server
     if (empty($judul) || empty($lk) || $kid == 0) { setFlashMessage('danger','Field wajib tidak boleh kosong!'); header('Location: browse_sop.php'); exit(); }
+    if (strlen($judul) < 5) { setFlashMessage('danger','Judul minimal 5 karakter.'); header('Location: browse_sop.php'); exit(); }
+    if (strlen($lk) < 20) { setFlashMessage('danger','Langkah kerja minimal 20 karakter.'); header('Location: browse_sop.php'); exit(); }
+
     if (isset($_FILES['file_attachment']) && $_FILES['file_attachment']['error'] == 0) {
         $dir = "../assets/uploads/";
         $ext = pathinfo($_FILES['file_attachment']['name'], PATHINFO_EXTENSION);
@@ -83,7 +88,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cari SOP - SOP Digital</title>
+    <title>Daftar SOP - SOP Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -216,6 +221,18 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
         .field-hint i{font-size:11px;margin-top:2px;flex-shrink:0;}
         .field-hint.blue i{color:#60a5fa;}
         .field-hint.yellow i{color:#f59e0b;}
+        /* NEW: Field error style */
+        .field-error {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .field-error i {
+            font-size: 10px;
+        }
         .warn-banner{display:flex;gap:11px;align-items:flex-start;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.28);border-radius:10px;padding:12px 14px;margin-bottom:18px;}
         .warn-banner .wi{color:#f59e0b;font-size:14px;margin-top:2px;flex-shrink:0;}
         .warn-banner .wt{font-size:12px;color:#fbbf24;line-height:1.65;}
@@ -286,11 +303,9 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
                 <div class="card-body">
                     <form method="GET" action="" style="display:grid;grid-template-columns:1fr 1fr auto;gap:15px;align-items:end">
                         <div class="form-group" style="margin:0">
-                            <label>Cari Judul SOP</label>
-                            <input type="text" name="search" class="form-control" placeholder="Cari SOP..." value="<?php echo htmlspecialchars($search); ?>">
+                            <input type="text" name="search" class="form-control" placeholder="Cari Judul SOP..." value="<?php echo htmlspecialchars($search); ?>">
                         </div>
                         <div class="form-group" style="margin:0">
-                            <label>Kategori</label>
                             <select name="kategori" class="form-control">
                                 <option value="">Semua Kategori</option>
                                 <?php mysqli_data_seek($result_cat,0); while($cat=mysqli_fetch_assoc($result_cat)): ?>
@@ -359,7 +374,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
                     Pastikan dokumen belum tersedia di sistem, ditulis dengan lengkap dan akurat, serta sesuai dengan standar penulisan yang berlaku.
                 </div>
             </div>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="formAjukanSOP">
                 <input type="hidden" name="action" value="add">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
                     <div class="form-group" style="margin-bottom:0">
@@ -367,21 +382,25 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
                             <span class="field-name"><i class="fas fa-heading"></i> Judul SOP</span>
                             <span class="badge-req">Wajib di isi!</span>
                         </div>
-                        <input type="text" name="judul" class="form-control" placeholder="Contoh: SOP Pengajuan Cuti" required>
-                        <div class="field-hint yellow"><i class="fas fa-exclamation-circle"></i><span>Judul harus spesifik. Hindari nama terlalu umum.</span></div>
+                        <input type="text" name="judul" id="add_judul" class="form-control" placeholder="Contoh: SOP Pengajuan Cuti" required>
+                        <div class="field-error" id="error-judul" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                        </div>
                     </div>
                     <div class="form-group" style="margin-bottom:0">
                         <div class="form-row-label">
                             <span class="field-name"><i class="fas fa-folder"></i> Kategori</span>
                             <span class="badge-req">Wajib di isi!</span>
                         </div>
-                        <select name="kategori_id" class="form-control" required>
+                        <select name="kategori_id" id="add_kategori" class="form-control" required>
                             <option value="">-- Pilih Kategori --</option>
                             <?php mysqli_data_seek($result_cat,0); while($cat=mysqli_fetch_assoc($result_cat)): ?>
                             <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['nama_kategori']); ?></option>
                             <?php endwhile; ?>
                         </select>
-                        <div class="field-hint blue"><i class="fas fa-info-circle"></i><span>Pilih kategori yang cocok dengan judul SOP anda.</span></div>
+                        <div class="field-error" id="error-kategori" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span></span>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:14px">
@@ -390,7 +409,6 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
                         <span class="badge-opt">Opsional</span>
                     </div>
                     <textarea name="deskripsi" class="form-control" rows="3" placeholder="Silahkan isi tujuan dan deskripsi dalam pembuatan SOP ini..."></textarea>
-                    <div class="field-hint blue"><i class="fas fa-lightbulb"></i><span>Tuliskan tujuan SOP, siapa yang terlibat, dan kapan prosedur ini digunakan.</span></div>
                 </div>
                 <div class="form-group">
                     <div class="form-row-label">
@@ -405,8 +423,10 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
                             <li>Gunakan bahasa yang jelas, singkat, dan mudah dipahami</li>
                         </ol>
                     </div>
-                    <textarea name="langkah_kerja" class="form-control" rows="7" required placeholder="Silahkan isi langkah-langkah dalam pembuatan SOP ini..."></textarea>
-                    <div class="field-hint yellow"><i class="fas fa-exclamation-circle"></i><span>Langkah yang tidak lengkap akan dikembalikan Admin untuk di revisi.</span></div>
+                    <textarea name="langkah_kerja" id="add_langkah" class="form-control" rows="7" required placeholder="Silahkan isi langkah-langkah dalam pembuatan SOP ini..."></textarea>
+                    <div class="field-error" id="error-langkah" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> <span></span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <div class="form-row-label">
@@ -526,9 +546,74 @@ document.addEventListener('DOMContentLoaded',function(){
         }).catch(function(){showAlert('alertUbahPassword','Kesalahan jaringan.','error');}).finally(function(){sb.disabled=false;sb.innerHTML='<i class="fas fa-key"></i> Ubah Password';});
     });
 
-    // checkbox SOP
-    var chk=document.getElementById('confirmSOP'),save=document.getElementById('btnAjukan');
-    if(chk&&save){chk.addEventListener('change',function(){save.disabled=!this.checked;save.style.opacity=this.checked?'1':'.45';save.style.cursor=this.checked?'pointer':'not-allowed';});}
+    // === VALIDATION FOR SOP SUBMISSION FORM ===
+    const addJudul = document.getElementById('add_judul');
+    const addKategori = document.getElementById('add_kategori');
+    const addLangkah = document.getElementById('add_langkah');
+    const errorJudul = document.getElementById('error-judul');
+    const errorKategori = document.getElementById('error-kategori');
+    const errorLangkah = document.getElementById('error-langkah');
+    const chkSOP = document.getElementById('confirmSOP');
+    const btnAjukan = document.getElementById('btnAjukan');
+    const sopForm = document.getElementById('formAjukanSOP');
+
+    function validateAddForm() {
+        let isValid = true;
+
+        // Judul
+        const judulVal = addJudul.value.trim();
+        if (judulVal.length < 5) {
+            errorJudul.style.display = 'flex';
+            errorJudul.querySelector('span').textContent = 'Judul minimal 5 karakter.';
+            isValid = false;
+        } else {
+            errorJudul.style.display = 'none';
+        }
+
+        // Kategori
+        if (!addKategori.value) {
+            errorKategori.style.display = 'flex';
+            errorKategori.querySelector('span').textContent = 'Pilih kategori yang cocok dengan judul SOP anda.';
+            isValid = false;
+        } else {
+            errorKategori.style.display = 'none';
+        }
+
+        // Langkah kerja
+        const langkahVal = addLangkah.value.trim();
+        if (langkahVal.length < 20) {
+            errorLangkah.style.display = 'flex';
+            errorLangkah.querySelector('span').textContent = 'Langkah kerja minimal 20 karakter.';
+            isValid = false;
+        } else {
+            errorLangkah.style.display = 'none';
+        }
+
+        return isValid;
+    }
+
+    function updateSubmitButton() {
+        const valid = validateAddForm();
+        const enabled = chkSOP.checked && valid;
+        btnAjukan.disabled = !enabled;
+        btnAjukan.style.opacity = enabled ? '1' : '.45';
+        btnAjukan.style.cursor = enabled ? 'pointer' : 'not-allowed';
+    }
+
+    addJudul.addEventListener('input', updateSubmitButton);
+    addKategori.addEventListener('change', updateSubmitButton);
+    addLangkah.addEventListener('input', updateSubmitButton);
+    chkSOP.addEventListener('change', updateSubmitButton);
+    updateSubmitButton(); // initial state
+
+    sopForm.addEventListener('submit', function(e) {
+        if (!validateAddForm() || !chkSOP.checked) {
+            e.preventDefault();
+            alert('Harap periksa kembali: pastikan judul minimal 5 karakter, kategori dipilih, langkah kerja minimal 20 karakter, dan konfirmasi telah dicentang.');
+            return false;
+        }
+    });
+
 });
 function openSopModal(id){document.getElementById(id).style.display='block';}
 function closeSopModal(id){document.getElementById(id).style.display='none';}
