@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // === THEME TOGGLE ===
     var btn  = document.getElementById('theme-toggle-btn'),
         icon = document.getElementById('theme-icon');
-    function sync(){ icon.className = document.documentElement.getAttribute('data-theme')==='light' ? 'fas fa-sun' : 'fas fa-moon'; }
+    function sync(){ icon.className = document.documentElement.getAttribute('data-theme')==='light' ? 'far fa-sun' : 'fas fa-moon'; }
     sync();
     btn.addEventListener('click', function(){
         var isLight = document.documentElement.getAttribute('data-theme')==='light';
