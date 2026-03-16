@@ -698,7 +698,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
             });
         });
     });
-    
+
 </script>
 <script>
 (function () {
