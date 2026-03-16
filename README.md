@@ -39,8 +39,8 @@ Gunakan akun berikut untuk masuk ke dalam sistem:
 | **Administrator** | `admin@sinergi.co.id` | `sinergi` |
 | **User (Rahul Candra)** | `rahulcandra@sinergi.co.id` | `rahulcandra` |
 | **User (Bulan Hidayatul)** | `bulanhidayatul@sinergi.co.id` | `bulanhidayatul` |
-| **User (Zaenal Fanani)** | `zaenal@sinergi.co.id` | `zaenalfanani` |
-| **User (Latif Junia)** | `latif@sinergi.co.id` | `latifjunia` |
+| **User (Zaenal Fanani)** | `zaenalfanani@sinergi.co.id` | `zaenalfanani` |
+| **User (Latif Junia)** | `latifjunia@sinergi.co.id` | `latifjunia` |
 | **User (Roykhan Pratama)** | `roykhanpratama@sinergi.co.id` | `roykhanpratama` |
 | **User (Prudenta Fajar)** | `prudentafajar@sinergi.co.id` | `prudentafajar` |
 
