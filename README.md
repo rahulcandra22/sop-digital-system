@@ -37,7 +37,7 @@ Gunakan akun berikut untuk masuk ke dalam sistem:
 | Role | Email | Password |
 | :--- | :--- | :--- |
 | **Administrator** | `admin@sinergi.co.id` | `sinergi` |
-| **Administrator** | `nugrohohermanto@sinergi.co.id` | `nugrohohermanto` |
+| **Admin (Nugroho Hermanto)** | `nugrohohermanto@sinergi.co.id` | `nugrohohermanto` |
 | **User (Rahul Candra)** | `rahulcandra@sinergi.co.id` | `rahulcandra` |
 | **User (Bulan Hidayatul)** | `bulanhidayatul@sinergi.co.id` | `bulanhidayatul` |
 | **User (Zaenal Fanani)** | `zaenalfanani@sinergi.co.id` | `zaenalfanani` |
