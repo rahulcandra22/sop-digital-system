@@ -188,7 +188,7 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         [data-theme="light"] .greeting-banner{background:linear-gradient(135deg,rgba(59,130,246,.10) 0%,rgba(139,92,246,.08) 60%,rgba(240,244,248,.9) 100%);border-color:rgba(59,130,246,.18);}
         .greeting-left{flex:1;position:relative;z-index:1;}
         .greeting-hi{font-size:13px;font-weight:500;color:var(--tmut);margin-bottom:4px;}
-        .greeting-name{font-size:26px;font-weight:800;color:#cbd5e1;margin-bottom:8px;line-height:1.2;}
+        .greeting-name{font-size:26px;font-weight:800;color:var(--tm);margin-bottom:8px;line-height:1.2;}
         .greeting-name span{background:linear-gradient(90deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
         .greeting-sub{font-size:13px;color:var(--tmut);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
         .greeting-sub i{color:#3b82f6;}
