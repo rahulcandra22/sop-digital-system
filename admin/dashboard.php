@@ -3,7 +3,9 @@ require_once '../config/database.php';
 require_once '../includes/session.php';
 requireAdmin();
 
-// AJAX: Update Profil
+// ============================================================
+// AJAX: Update Profil + Foto
+// ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_profile') {
     header('Content-Type: application/json');
     $user_id      = getUserId();
@@ -14,14 +16,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $chk = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ? LIMIT 1");
     $chk->bind_param("si",$email,$user_id); $chk->execute(); $chk->store_result();
     if ($chk->num_rows > 0) { echo json_encode(['success'=>false,'message'=>'Email sudah digunakan akun lain.']); exit; }
-    $upd = $conn->prepare("UPDATE users SET nama_lengkap=?, email=?, username=? WHERE id=?");
-    $upd->bind_param("sssi",$nama_lengkap,$email,$email,$user_id);
-    if ($upd->execute()) { $_SESSION['nama_lengkap']=$nama_lengkap; $_SESSION['email']=$email; echo json_encode(['success'=>true,'message'=>'Profil berhasil diperbarui!','nama'=>$nama_lengkap,'email'=>$email]); }
-    else { echo json_encode(['success'=>false,'message'=>'Gagal menyimpan perubahan.']); }
+    $foto_baru = null;
+    if (isset($_FILES['foto_profil']) && $_FILES['foto_profil']['error'] === 0) {
+        $allowed = ['jpg','jpeg','png','webp'];
+        $ext = strtolower(pathinfo($_FILES['foto_profil']['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowed)) { echo json_encode(['success'=>false,'message'=>'Format foto tidak didukung.']); exit; }
+        if ($_FILES['foto_profil']['size'] > 2*1024*1024) { echo json_encode(['success'=>false,'message'=>'Ukuran foto maksimal 2MB.']); exit; }
+        $dir = "../assets/uploads/foto_profil/";
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        $old = $conn->prepare("SELECT foto_profil FROM users WHERE id=? LIMIT 1");
+        $old->bind_param("i",$user_id); $old->execute(); $old->bind_result($old_foto); $old->fetch(); $old->close();
+        if ($old_foto && file_exists($dir.$old_foto)) unlink($dir.$old_foto);
+        $filename = 'foto_'.$user_id.'_'.time().'.'.$ext;
+        if (move_uploaded_file($_FILES['foto_profil']['tmp_name'], $dir.$filename)) $foto_baru = $filename;
+    }
+    if ($foto_baru) {
+        $upd = $conn->prepare("UPDATE users SET nama_lengkap=?, email=?, username=?, foto_profil=? WHERE id=?");
+        $upd->bind_param("ssssi",$nama_lengkap,$email,$email,$foto_baru,$user_id);
+    } else {
+        $upd = $conn->prepare("UPDATE users SET nama_lengkap=?, email=?, username=? WHERE id=?");
+        $upd->bind_param("sssi",$nama_lengkap,$email,$email,$user_id);
+    }
+    if ($upd->execute()) {
+        $_SESSION['nama_lengkap']=$nama_lengkap; $_SESSION['email']=$email;
+        if ($foto_baru) $_SESSION['foto_profil'] = $foto_baru;
+        $foto_url = $foto_baru ? '../assets/uploads/foto_profil/'.$foto_baru.'?t='.time() : null;
+        echo json_encode(['success'=>true,'message'=>'Profil berhasil diperbarui!','nama'=>$nama_lengkap,'email'=>$email,'foto_url'=>$foto_url]);
+    } else { echo json_encode(['success'=>false,'message'=>'Gagal menyimpan perubahan.']); }
     exit;
 }
 
+// ============================================================
 // AJAX: Ubah Password
+// ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_password') {
     header('Content-Type: application/json');
     $user_id = getUserId();
@@ -59,10 +86,12 @@ $cat_data = [];
 $cat_res = mysqli_query($conn,"SELECT c.nama_kategori, COUNT(s.id) as jumlah FROM categories c LEFT JOIN sop s ON c.id=s.kategori_id GROUP BY c.id ORDER BY jumlah DESC LIMIT 6");
 while ($r = mysqli_fetch_assoc($cat_res)) $cat_data[] = $r;
 
-$flash     = getFlashMessage();
-$cur_nama  = getNamaLengkap();
-$cur_email = $_SESSION['email'] ?? '';
-$cur_init  = strtoupper(substr($cur_nama, 0, 1));
+$flash        = getFlashMessage();
+$cur_nama     = getNamaLengkap();
+$cur_email    = $_SESSION['email'] ?? '';
+$cur_init     = strtoupper(substr($cur_nama, 0, 1));
+$cur_foto     = $_SESSION['foto_profil'] ?? null;
+$cur_foto_url = $cur_foto ? '../assets/uploads/foto_profil/'.$cur_foto : null;
 
 $hour = (int)date('H');
 $greeting      = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : ($hour < 20 ? 'Selamat Sore' : 'Selamat Malam'));
@@ -81,7 +110,6 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* ═══ VARIABLES ═══ */
         :root {
             --bg:#020617; --sb:rgba(15,23,42,.97); --tb:rgba(15,23,42,.87);
             --gb:rgba(255,255,255,.08); --tm:#f8fafc; --tmut:#94a3b8; --tsub:#cbd5e1;
@@ -106,9 +134,10 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
 
         *,*::before,*::after{box-sizing:border-box;}
         body{font-family:'Outfit',sans-serif!important;background-color:var(--bg)!important;color:var(--tm)!important;margin:0;overflow-x:hidden;transition:background-color .35s,color .35s;}
+        body.dashboard-page{background:none!important;background-color:var(--bg)!important;}
         body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 15% 50%,rgba(59,130,246,.07),transparent 30%),radial-gradient(circle at 85% 20%,rgba(139,92,246,.06),transparent 30%);pointer-events:none;}
 
-        /* ═══ SIDEBAR ═══ */
+        /* SIDEBAR */
         .sidebar{background:var(--sb)!important;border-right:1px solid var(--gb)!important;backdrop-filter:blur(12px);}
         .sidebar-header{border-bottom:1px solid var(--gb)!important;padding:20px;}
         .sidebar-header p{color:var(--tmut)!important;margin:0;font-size:12px;}
@@ -116,7 +145,7 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .sidebar-menu li a{display:flex;align-items:center;gap:10px;padding:12px 20px;color:var(--sl)!important;text-decoration:none;border-left:3px solid transparent;font-size:14px;font-weight:500;transition:.25s;}
         .sidebar-menu li a:hover,.sidebar-menu li a.active{background:var(--sa)!important;color:#3b82f6!important;border-left-color:#3b82f6;}
 
-        /* ═══ TOPBAR ═══ */
+        /* TOPBAR */
         .main-content{background:transparent!important;}
         .topbar{background:var(--tb)!important;border-bottom:1px solid var(--gb)!important;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;position:relative;z-index:1000;overflow:visible;}
         .topbar-left h2{color:var(--tm)!important;font-size:20px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px;}
@@ -127,11 +156,13 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .notif-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;height:18px;min-width:18px;padding:0 5px;border-radius:20px;display:flex;align-items:center;justify-content:center;border:2px solid var(--tb);animation:pulse-red 2s infinite;}
         @keyframes pulse-red{0%{box-shadow:0 0 0 0 rgba(239,68,68,.7);}70%{box-shadow:0 0 0 6px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}}
 
-        /* ═══ DROPDOWN ═══ */
+        /* DROPDOWN */
         .user-info-wrap{position:relative;}
         .user-trigger{display:flex;align-items:center;gap:9px;padding:4px 10px 4px 4px;border-radius:10px;cursor:pointer;transition:background .18s;user-select:none;}
         .user-trigger:hover{background:var(--dd-hover);}
-        .user-avatar{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+        .user-avatar{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden;}
+        .user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+        #fotoPreview:hover{opacity:.85;border-color:rgba(59,130,246,.7)!important;box-shadow:0 0 0 4px rgba(59,130,246,.15);}
         .user-trigger-name{font-size:13px;font-weight:600;color:var(--tm);}
         .user-trigger-chevron{font-size:10px;color:var(--tmut);transition:transform .22s;margin-left:1px;}
         .user-trigger-chevron.open{transform:rotate(180deg);}
@@ -143,10 +174,10 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .dd-item-logout{color:var(--dd-danger)!important;font-weight:600;}
         .dd-item-logout:hover{background:rgba(239,68,68,.07)!important;}
 
-        /* ═══ MODALS ═══ */
+        /* MODALS */
         .modal-overlay{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.55);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease;padding:20px;}
         .modal-overlay.show{opacity:1;pointer-events:auto;}
-        .modal-card{background:var(--sb);border:1px solid var(--gb);border-radius:16px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.38);transform:scale(.96) translateY(14px);transition:transform .22s ease;overflow:hidden;}
+        .modal-card{background:var(--sb);border:1px solid var(--gb);border-radius:16px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,.38);transform:scale(.96) translateY(14px);transition:transform .22s ease;overflow:hidden;}
         .modal-overlay.show .modal-card{transform:scale(1) translateY(0);}
         .modal-header{display:flex;align-items:center;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--gb);}
         .modal-icon-wrap{width:40px;height:40px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(139,92,246,.18));border:1px solid rgba(59,130,246,.28);display:flex;align-items:center;justify-content:center;font-size:15px;color:#60a5fa;}
@@ -172,17 +203,11 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .mf-btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(139,92,246,.36);}
         .mf-btn-save:disabled{opacity:.65;cursor:not-allowed;transform:none;}
 
-        /* ═══ LAYOUT ═══ */
+        /* LAYOUT */
         .content-wrapper{padding:24px;}
 
-        /* ═══ GREETING BANNER ═══ */
-        .greeting-banner{
-            background:linear-gradient(135deg,rgba(59,130,246,.18) 0%,rgba(139,92,246,.16) 60%,rgba(15,23,42,.85) 100%);
-            border:1px solid rgba(59,130,246,.25);
-            border-radius:20px;padding:24px 28px;margin-bottom:24px;
-            display:flex;align-items:center;justify-content:space-between;gap:20px;
-            position:relative;overflow:hidden;
-        }
+        /* GREETING */
+        .greeting-banner{background:linear-gradient(135deg,rgba(59,130,246,.18) 0%,rgba(139,92,246,.16) 60%,rgba(15,23,42,.85) 100%);border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:24px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;overflow:hidden;}
         .greeting-banner::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);pointer-events:none;}
         .greeting-banner::after{content:'';position:absolute;bottom:-30px;left:35%;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.10),transparent 70%);pointer-events:none;}
         [data-theme="light"] .greeting-banner{background:linear-gradient(135deg,rgba(59,130,246,.10) 0%,rgba(139,92,246,.08) 60%,rgba(240,244,248,.9) 100%);border-color:rgba(59,130,246,.18);}
@@ -196,31 +221,13 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .greeting-clock{font-size:42px;font-weight:800;color:var(--tm);letter-spacing:-2px;line-height:1;font-variant-numeric:tabular-nums;}
         .greeting-date{font-size:12px;color:var(--tmut);margin-top:5px;}
 
-        /* ═══ STAT CARDS ═══ */
+        /* STAT CARDS */
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-bottom:24px;}
-
-        /* Dark mode stat cards — explicit values, tidak bisa di-override style.css */
-        .stat-card{
-            background:rgba(22,33,62,.85) !important;
-            border:1px solid rgba(255,255,255,.09) !important;
-            border-radius:16px !important;
-            padding:20px;display:flex;align-items:center;gap:16px;
-            transition:.3s;position:relative;overflow:hidden;
-            box-shadow:0 4px 20px rgba(0,0,0,.25);
-        }
-        [data-theme="light"] .stat-card{
-            background:rgba(255,255,255,.92) !important;
-            border:1px solid rgba(0,0,0,.08) !important;
-            box-shadow:0 4px 16px rgba(0,0,0,.07);
-        }
+        .stat-card{background:rgba(22,33,62,.85)!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:16px!important;padding:20px;display:flex;align-items:center;gap:16px;transition:.3s;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.25);}
+        [data-theme="light"] .stat-card{background:rgba(255,255,255,.92)!important;border:1px solid rgba(0,0,0,.08)!important;box-shadow:0 4px 16px rgba(0,0,0,.07);}
         .stat-card::after{content:'';position:absolute;bottom:-20px;right:-20px;width:90px;height:90px;border-radius:50%;opacity:.07;pointer-events:none;}
-        .stat-card.blue-card::after{background:#3b82f6;}
-        .stat-card.green-card::after{background:#10b981;}
-        .stat-card.orange-card::after{background:#f59e0b;}
-        .stat-card.purple-card::after{background:#8b5cf6;}
+        .stat-card.blue-card::after{background:#3b82f6;}.stat-card.green-card::after{background:#10b981;}.stat-card.orange-card::after{background:#f59e0b;}.stat-card.purple-card::after{background:#8b5cf6;}
         .stat-card:hover{transform:translateY(-5px);box-shadow:0 14px 32px rgba(0,0,0,.22);}
-        [data-theme="light"] .stat-card:hover{box-shadow:0 10px 24px rgba(0,0,0,.10);}
-
         .stat-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
         .stat-icon.blue{background:rgba(59,130,246,.20);color:#60a5fa;}
         .stat-icon.green{background:rgba(16,185,129,.20);color:#34d399;}
@@ -230,70 +237,43 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         [data-theme="light"] .stat-icon.green{background:rgba(16,185,129,.12);color:#059669;}
         [data-theme="light"] .stat-icon.orange{background:rgba(249,115,22,.12);color:#d97706;}
         [data-theme="light"] .stat-icon.purple{background:rgba(139,92,246,.12);color:#7c3aed;}
-
         .stat-info{flex:1;}
         .stat-info h3{color:var(--tm)!important;font-size:30px;font-weight:800;margin:0 0 2px;line-height:1;font-variant-numeric:tabular-nums;}
         .stat-info p{color:var(--tmut)!important;margin:0;font-size:13px;}
         .stat-trend{font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;margin-top:6px;}
         .stat-trend.up{background:rgba(16,185,129,.18);color:#10b981;}
         .stat-trend.info{background:rgba(59,130,246,.16);color:#60a5fa;}
-        [data-theme="light"] .stat-trend.up{background:rgba(16,185,129,.10);color:#059669;}
-        [data-theme="light"] .stat-trend.info{background:rgba(59,130,246,.10);color:#2563eb;}
 
-        /* ═══ STATUS BREAKDOWN ═══ */
+        /* STATUS BREAKDOWN */
         .status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
         .status-card{border-radius:14px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border:1px solid;transition:.3s;}
         .status-card:hover{transform:translateY(-3px);}
-        /* Dark mode */
-        .status-card.sc-draft {background:rgba(71,85,105,.22);border-color:rgba(148,163,184,.22);}
+        .status-card.sc-draft{background:rgba(71,85,105,.22);border-color:rgba(148,163,184,.22);}
         .status-card.sc-review{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.32);}
-        .status-card.sc-ok    {background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.32);}
-        .status-card.sc-revisi{background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.32);}
-        /* Light mode */
-        [data-theme="light"] .status-card.sc-draft {background:rgba(71,85,105,.07); border-color:rgba(71,85,105,.15);}
+        .status-card.sc-ok{background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.32);}
+        .status-card.sc-revisi{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.32);}
+        [data-theme="light"] .status-card.sc-draft{background:rgba(71,85,105,.07);border-color:rgba(71,85,105,.15);}
         [data-theme="light"] .status-card.sc-review{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.22);}
-        [data-theme="light"] .status-card.sc-ok    {background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.22);}
-        [data-theme="light"] .status-card.sc-revisi{background:rgba(239,68,68,.07); border-color:rgba(239,68,68,.22);}
-
+        [data-theme="light"] .status-card.sc-ok{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.22);}
+        [data-theme="light"] .status-card.sc-revisi{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.22);}
         .sc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-        .sc-draft .sc-label{color:#94a3b8;}
-        .sc-review .sc-label{color:#f59e0b;}
-        .sc-ok .sc-label{color:#10b981;}
-        .sc-revisi .sc-label{color:#ef4444;}
+        .sc-draft .sc-label{color:#94a3b8;}.sc-review .sc-label{color:#f59e0b;}.sc-ok .sc-label{color:#10b981;}.sc-revisi .sc-label{color:#ef4444;}
         .sc-num{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
-        .sc-draft .sc-num{color:#e2e8f0;}
-        .sc-review .sc-num{color:#fbbf24;}
-        .sc-ok .sc-num{color:#34d399;}
-        .sc-revisi .sc-num{color:#f87171;}
-        [data-theme="light"] .sc-draft .sc-num{color:#475569;}
-        [data-theme="light"] .sc-review .sc-num{color:#d97706;}
-        [data-theme="light"] .sc-ok .sc-num{color:#059669;}
-        [data-theme="light"] .sc-revisi .sc-num{color:#dc2626;}
+        .sc-draft .sc-num{color:#e2e8f0;}.sc-review .sc-num{color:#fbbf24;}.sc-ok .sc-num{color:#34d399;}.sc-revisi .sc-num{color:#f87171;}
+        [data-theme="light"] .sc-draft .sc-num{color:#475569;}[data-theme="light"] .sc-review .sc-num{color:#d97706;}[data-theme="light"] .sc-ok .sc-num{color:#059669;}[data-theme="light"] .sc-revisi .sc-num{color:#dc2626;}
         .sc-icon{font-size:30px;opacity:.2;}
 
-        /* ═══ CARD BASE ═══ */
-        .card{
-            background:rgba(22,33,62,.80) !important;
-            border:1px solid rgba(255,255,255,.08) !important;
-            border-radius:16px !important;
-            box-shadow:0 4px 20px rgba(0,0,0,.18);
-            margin-bottom:24px;overflow:hidden;
-        }
-        [data-theme="light"] .card{
-            background:rgba(255,255,255,.92) !important;
-            border:1px solid rgba(0,0,0,.08) !important;
-            box-shadow:0 4px 16px rgba(0,0,0,.06);
-        }
+        /* CARD */
+        .card{background:rgba(22,33,62,.80)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:16px!important;box-shadow:0 4px 20px rgba(0,0,0,.18);margin-bottom:24px;overflow:hidden;}
+        [data-theme="light"] .card{background:rgba(255,255,255,.92)!important;border:1px solid rgba(0,0,0,.08)!important;box-shadow:0 4px 16px rgba(0,0,0,.06);}
         .card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.07);}
         [data-theme="light"] .card-header{border-bottom-color:rgba(0,0,0,.07);}
         .card-header h3{color:var(--tm)!important;margin:0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;}
         .card-body{padding:22px;}
-
-        /* 2-col grid */
         .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
         .two-col .card{margin-bottom:0;}
 
-        /* ═══ TABLE ═══ */
+        /* TABLE */
         .table-responsive{overflow-x:auto;border-radius:10px;overflow:hidden;}
         table{width:100%!important;border-collapse:collapse!important;}
         thead tr{background:rgba(0,0,0,.3)!important;}
@@ -311,19 +291,19 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         [data-theme="light"] .badge-cat{background:rgba(59,130,246,.10);color:#2563eb;border-color:rgba(59,130,246,.2);}
         .s-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.70rem;font-weight:500;white-space:nowrap;}
 
-        /* ═══ BUTTONS ═══ */
+        /* BUTTONS */
         .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px!important;border:none!important;color:#fff!important;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none;transition:.25s;}
         .btn:hover{filter:brightness(1.1);transform:translateY(-2px);}
         .btn-success{background:linear-gradient(135deg,#10b981,#059669)!important;box-shadow:0 4px 12px rgba(16,185,129,.3);}
         .btn-info{background:linear-gradient(135deg,#3b82f6,#2563eb)!important;box-shadow:0 4px 12px rgba(59,130,246,.3);}
         .btn-sm{padding:6px 14px!important;font-size:12px!important;}
 
-        /* ═══ ALERTS ═══ */
+        /* ALERTS */
         .alert{border-radius:10px!important;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:14px;}
         .alert-success{background:rgba(16,185,129,.12)!important;color:#059669!important;border:1px solid rgba(16,185,129,.25)!important;}
         .alert-danger{background:rgba(239,68,68,.12)!important;color:#dc2626!important;border:1px solid rgba(239,68,68,.25)!important;}
 
-        /* ═══ QUICK ACTIONS ═══ */
+        /* QUICK ACTIONS */
         .quick-actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
         .qa-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:22px 14px;text-decoration:none;border-radius:14px;color:#fff;font-weight:600;font-size:13px;transition:.3s;box-shadow:0 4px 14px rgba(0,0,0,.2);position:relative;overflow:hidden;}
         .qa-btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,.07);opacity:0;transition:.25s;}
@@ -334,7 +314,7 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .qa-btn-2{background:linear-gradient(135deg,#3b82f6,#2563eb);}
         .qa-btn-3{background:linear-gradient(135deg,#f59e0b,#d97706);}
 
-        /* ═══ ACTIVITY FEED ═══ */
+        /* ACTIVITY FEED */
         .activity-list{display:flex;flex-direction:column;}
         .activity-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);}
         [data-theme="light"] .activity-item{border-bottom-color:rgba(0,0,0,.05);}
@@ -349,13 +329,13 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         .activity-title{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .activity-meta{font-size:11.5px;color:var(--tmut);display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 
-        /* ═══ CHART ═══ */
+        /* CHART */
         .chart-wrap{position:relative;height:220px;display:flex;align-items:center;justify-content:center;}
         .donut-center{position:absolute;text-align:center;pointer-events:none;}
         .donut-center .dc-num{font-size:30px;font-weight:800;color:var(--tm);line-height:1;}
         .donut-center .dc-lbl{font-size:11px;color:var(--tmut);margin-top:2px;}
 
-        /* ═══ SUMMARY ROWS ═══ */
+        /* SUMMARY */
         .summary-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
         [data-theme="light"] .summary-row{border-bottom-color:rgba(0,0,0,.05);}
         .summary-row:last-child{border-bottom:none;padding-bottom:0;}
@@ -395,16 +375,22 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                 </button>
                 <div class="user-info-wrap">
                     <div class="user-trigger" id="userTrigger">
-                        <div class="user-avatar" id="topbarAvatar"><?php echo $cur_init; ?></div>
+                        <div class="user-avatar" id="topbarAvatar">
+                            <?php if ($cur_foto_url): ?>
+                                <img src="<?php echo $cur_foto_url; ?>" alt="foto profil">
+                            <?php else: ?>
+                                <?php echo $cur_init; ?>
+                            <?php endif; ?>
+                        </div>
                         <span class="user-trigger-name" id="topbarNama"><?php echo htmlspecialchars($cur_nama); ?></span>
                         <i class="fas fa-chevron-down user-trigger-chevron" id="userChevron"></i>
                     </div>
                     <div class="user-dropdown" id="userDropdown">
-                        <button class="dd-item" id="openEditProfil">Edit Profil</button>
+                        <button class="dd-item" id="openEditProfil"><i class="fas fa-user-edit" style="margin-right:8px;color:#60a5fa;font-size:12px"></i>Edit Profil</button>
                         <div class="dd-sep"></div>
-                        <button class="dd-item" id="openUbahPassword">Ubah Password</button>
+                        <button class="dd-item" id="openUbahPassword"><i class="fas fa-lock" style="margin-right:8px;color:#a78bfa;font-size:12px"></i>Ubah Password</button>
                         <div class="dd-sep"></div>
-                        <a href="../logout.php" class="dd-item dd-item-logout">Logout</a>
+                        <a href="../logout.php" class="dd-item dd-item-logout"><i class="fas fa-sign-out-alt" style="margin-right:8px;font-size:12px"></i>Logout</a>
                     </div>
                 </div>
             </div>
@@ -477,38 +463,20 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
 
             <!-- STATUS BREAKDOWN -->
             <div class="status-grid">
-                <div class="status-card sc-draft">
-                    <div><div class="sc-label">Draft</div><div class="sc-num"><?php echo $st_draft; ?></div></div>
-                    <i class="fas fa-pencil-alt sc-icon" style="color:#94a3b8"></i>
-                </div>
-                <div class="status-card sc-review">
-                    <div><div class="sc-label">Review</div><div class="sc-num"><?php echo $st_review; ?></div></div>
-                    <i class="fas fa-search sc-icon" style="color:#f59e0b"></i>
-                </div>
-                <div class="status-card sc-ok">
-                    <div><div class="sc-label">Disetujui</div><div class="sc-num"><?php echo $st_disetujui; ?></div></div>
-                    <i class="fas fa-check-double sc-icon" style="color:#10b981"></i>
-                </div>
-                <div class="status-card sc-revisi">
-                    <div><div class="sc-label">Revisi</div><div class="sc-num"><?php echo $st_revisi; ?></div></div>
-                    <i class="fas fa-redo sc-icon" style="color:#ef4444"></i>
-                </div>
+                <div class="status-card sc-draft"><div><div class="sc-label">Draft</div><div class="sc-num"><?php echo $st_draft; ?></div></div><i class="fas fa-pencil-alt sc-icon" style="color:#94a3b8"></i></div>
+                <div class="status-card sc-review"><div><div class="sc-label">Review</div><div class="sc-num"><?php echo $st_review; ?></div></div><i class="fas fa-search sc-icon" style="color:#f59e0b"></i></div>
+                <div class="status-card sc-ok"><div><div class="sc-label">Disetujui</div><div class="sc-num"><?php echo $st_disetujui; ?></div></div><i class="fas fa-check-double sc-icon" style="color:#10b981"></i></div>
+                <div class="status-card sc-revisi"><div><div class="sc-label">Revisi</div><div class="sc-num"><?php echo $st_revisi; ?></div></div><i class="fas fa-redo sc-icon" style="color:#ef4444"></i></div>
             </div>
 
             <!-- CHARTS ROW -->
             <div class="two-col">
-                <!-- Donut Chart -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-pie" style="color:#8b5cf6"></i> Distribusi Status SOP</h3>
-                    </div>
+                    <div class="card-header"><h3><i class="fas fa-chart-pie" style="color:#8b5cf6"></i> Distribusi Status SOP</h3></div>
                     <div class="card-body">
                         <div class="chart-wrap">
                             <canvas id="donutChart"></canvas>
-                            <div class="donut-center">
-                                <div class="dc-num"><?php echo $total_sop; ?></div>
-                                <div class="dc-lbl">Total SOP</div>
-                            </div>
+                            <div class="donut-center"><div class="dc-num"><?php echo $total_sop; ?></div><div class="dc-lbl">Total SOP</div></div>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
                             <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tsub)"><span style="width:10px;height:10px;border-radius:3px;background:#94a3b8;flex-shrink:0"></span>Draft (<?php echo $st_draft; ?>)</div>
@@ -518,22 +486,14 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                         </div>
                     </div>
                 </div>
-                <!-- Bar Chart -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-bar" style="color:#3b82f6"></i> SOP per Kategori</h3>
-                    </div>
-                    <div class="card-body">
-                        <div style="position:relative;height:268px;">
-                            <canvas id="barChart"></canvas>
-                        </div>
-                    </div>
+                    <div class="card-header"><h3><i class="fas fa-chart-bar" style="color:#3b82f6"></i> SOP per Kategori</h3></div>
+                    <div class="card-body"><div style="position:relative;height:268px;"><canvas id="barChart"></canvas></div></div>
                 </div>
             </div>
 
-            <!-- RECENT + QUICK ACTIONS ROW -->
+            <!-- RECENT + QUICK ACTIONS -->
             <div class="two-col">
-                <!-- Recent SOP -->
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-history" style="color:#10b981"></i> SOP Terbaru</h3>
@@ -549,13 +509,9 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                         <div class="activity-list">
                             <?php if ($res && mysqli_num_rows($res)>0): while($row=mysqli_fetch_assoc($res)): $s=trim($row['status']); ?>
                             <div class="activity-item">
-                                <div class="activity-dot <?php echo $dot_colors[$s]??'gray'; ?>">
-                                    <i class="fas <?php echo $dot_icons[$s]??'fa-file'; ?>"></i>
-                                </div>
+                                <div class="activity-dot <?php echo $dot_colors[$s]??'gray'; ?>"><i class="fas <?php echo $dot_icons[$s]??'fa-file'; ?>"></i></div>
                                 <div class="activity-content">
-                                    <div class="activity-title" title="<?php echo htmlspecialchars($row['judul']); ?>">
-                                        <?php echo htmlspecialchars(mb_substr($row['judul'],0,38).(mb_strlen($row['judul'])>38?'…':'')); ?>
-                                    </div>
+                                    <div class="activity-title"><?php echo htmlspecialchars(mb_substr($row['judul'],0,38).(mb_strlen($row['judul'])>38?'…':'')); ?></div>
                                     <div class="activity-meta">
                                         <span class="badge-cat" style="font-size:10px;padding:1px 7px"><?php echo htmlspecialchars($row['nama_kategori']); ?></span>
                                         <span class="s-badge" style="<?php echo $ss[$s]??$ss['Revisi']; ?>;font-size:10px;padding:1px 7px"><?php echo $s; ?></span>
@@ -569,14 +525,9 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                         </div>
                     </div>
                 </div>
-
-                <!-- Right column -->
                 <div style="display:flex;flex-direction:column;gap:20px;">
-                    <!-- Quick Actions -->
                     <div class="card" style="margin-bottom:0">
-                        <div class="card-header">
-                            <h3><i class="fas fa-bolt" style="color:#f59e0b"></i> Quick Actions</h3>
-                        </div>
+                        <div class="card-header"><h3><i class="fas fa-bolt" style="color:#f59e0b"></i> Quick Actions</h3></div>
                         <div class="card-body">
                             <div class="quick-actions-grid">
                                 <a href="sop.php" class="qa-btn qa-btn-1"><i class="fas fa-plus-circle"></i><span>Tambah SOP</span></a>
@@ -585,18 +536,15 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                             </div>
                         </div>
                     </div>
-                    <!-- Summary -->
                     <div class="card" style="margin-bottom:0">
-                        <div class="card-header">
-                            <h3><i class="fas fa-info-circle" style="color:#60a5fa"></i> Ringkasan Sistem</h3>
-                        </div>
+                        <div class="card-header"><h3><i class="fas fa-info-circle" style="color:#60a5fa"></i> Ringkasan Sistem</h3></div>
                         <div class="card-body" style="padding:14px 22px 18px">
                             <?php
                             $items = [
-                                ['label'=>'Total Dokumen SOP',    'val'=>$total_sop,      'icon'=>'fa-file-alt',        'color'=>'#60a5fa'],
-                                ['label'=>'Kategori Tersedia',     'val'=>$total_kategori, 'icon'=>'fa-folder',          'color'=>'#34d399'],
-                                ['label'=>'Pengguna Terdaftar',    'val'=>$total_user,     'icon'=>'fa-users',           'color'=>'#fb923c'],
-                                ['label'=>'SOP Butuh Tindakan',    'val'=>$total_notif,    'icon'=>'fa-exclamation-circle','color'=>'#f87171'],
+                                ['label'=>'Total Dokumen SOP','val'=>$total_sop,'icon'=>'fa-file-alt','color'=>'#60a5fa'],
+                                ['label'=>'Kategori Tersedia','val'=>$total_kategori,'icon'=>'fa-folder','color'=>'#34d399'],
+                                ['label'=>'Pengguna Terdaftar','val'=>$total_user,'icon'=>'fa-users','color'=>'#fb923c'],
+                                ['label'=>'SOP Butuh Tindakan','val'=>$total_notif,'icon'=>'fa-exclamation-circle','color'=>'#f87171'],
                             ];
                             foreach($items as $it):
                             ?>
@@ -625,9 +573,38 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
             <button class="modal-close" data-close="modalEditProfil"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-alert" id="alertEditProfil"></div>
-        <form id="formEditProfil" autocomplete="off">
+        <form id="formEditProfil" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="action" value="update_profile">
             <div class="modal-body">
+
+                <!-- FOTO PROFIL -->
+                <div class="mf-group">
+                    <label>Foto Profil</label>
+                    <div style="display:flex;align-items:center;gap:16px;padding:14px;background:var(--togbg);border:1px solid var(--gb);border-radius:12px;">
+                        <label for="inputFoto" style="cursor:pointer;flex-shrink:0;">
+                            <div id="fotoPreview" style="width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;overflow:hidden;border:2px solid rgba(59,130,246,.4);transition:.3s;">
+                                <?php if ($cur_foto_url): ?>
+                                    <img src="<?php echo $cur_foto_url; ?>" style="width:100%;height:100%;object-fit:cover;">
+                                <?php else: ?>
+                                    <?php echo $cur_init; ?>
+                                <?php endif; ?>
+                            </div>
+                        </label>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;">Ganti Foto</div>
+                            <div style="font-size:11px;color:var(--tmut);margin-bottom:10px;line-height:1.5;">JPG, PNG, WEBP · Maks. 2MB<br>Klik foto untuk memilih gambar</div>
+                            <label for="inputFoto" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:8px;color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Outfit',sans-serif;">
+                                <i class="fas fa-image"></i> Pilih Foto
+                            </label>
+                            <input type="file" name="foto_profil" id="inputFoto" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                        </div>
+                    </div>
+                    <div id="fotoNamaFile" style="display:none;margin-top:6px;font-size:11.5px;color:#34d399;align-items:center;gap:6px;">
+                        <i class="fas fa-check-circle"></i><span></span>
+                    </div>
+                </div>
+
+                <!-- NAMA -->
                 <div class="mf-group">
                     <label>NAMA LENGKAP</label>
                     <div class="mf-wrap">
@@ -635,6 +612,8 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                         <input type="text" name="nama_lengkap" id="editNama" value="<?php echo htmlspecialchars($cur_nama); ?>" placeholder="Nama lengkap" required>
                     </div>
                 </div>
+
+                <!-- EMAIL -->
                 <div class="mf-group">
                     <label>EMAIL <span style="font-size:10px;opacity:.5;text-transform:none;">(juga sebagai username)</span></label>
                     <div class="mf-wrap">
@@ -642,6 +621,7 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
                         <input type="email" name="email" id="editEmail" value="<?php echo htmlspecialchars($cur_email); ?>" placeholder="email@sinergi.co.id" required>
                     </div>
                 </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="mf-btn-cancel" data-close="modalEditProfil">Batal</button>
@@ -695,6 +675,7 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         </form>
     </div>
 </div>
+
 <script src="../assets/js/page-transition.js"></script>
 <script src="../assets/js/script.js"></script>
 <script>
@@ -720,6 +701,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // MODAL HELPERS
     function openModal(id){ document.getElementById(id).classList.add('show'); dropdown.classList.remove('show'); chevron.classList.remove('open'); var a=document.querySelector('#'+id+' .modal-alert'); if(a) a.className='modal-alert'; }
     function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
     document.getElementById('openEditProfil').addEventListener('click', function(){ openModal('modalEditProfil'); });
     document.getElementById('openUbahPassword').addEventListener('click', function(){ openModal('modalUbahPassword'); });
     document.querySelectorAll('[data-close]').forEach(function(el){ el.addEventListener('click', function(){ closeModal(this.getAttribute('data-close')); }); });
@@ -733,18 +715,54 @@ document.addEventListener('DOMContentLoaded', function(){
     // ALERT HELPER
     function showAlert(id,msg,type){ var el=document.getElementById(id); el.className='modal-alert '+type; el.innerHTML='<i class="fas '+(type==='success'?'fa-check-circle':'fa-exclamation-circle')+'"></i>&nbsp;'+msg; }
 
+    // FOTO PREVIEW
+    var inputFoto = document.getElementById('inputFoto');
+    if(inputFoto){
+        inputFoto.addEventListener('change', function(){
+            var file = this.files[0]; if(!file) return;
+            var nf = document.getElementById('fotoNamaFile');
+            nf.style.display = 'flex'; nf.querySelector('span').textContent = file.name;
+            var reader = new FileReader();
+            reader.onload = function(e){
+                document.getElementById('fotoPreview').innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;">';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     // EDIT PROFIL
     document.getElementById('formEditProfil').addEventListener('submit', function(e){
-        e.preventDefault(); var sb=document.getElementById('btnSaveProfil'); sb.disabled=true; sb.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
-        fetch(window.location.href,{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(res=>{
-            showAlert('alertEditProfil',res.message,res.success?'success':'error');
-            if(res.success){ var i=res.nama.charAt(0).toUpperCase(); var ta=document.getElementById('topbarAvatar'); if(ta)ta.textContent=i; var tn=document.getElementById('topbarNama'); if(tn)tn.textContent=res.nama; document.getElementById('editNama').value=res.nama; document.getElementById('editEmail').value=res.email; setTimeout(()=>closeModal('modalEditProfil'),1500); }
-        }).catch(()=>showAlert('alertEditProfil','Kesalahan jaringan.','error')).finally(()=>{ sb.disabled=false; sb.innerHTML='<i class="fas fa-save"></i> Simpan'; });
+        e.preventDefault();
+        var sb = document.getElementById('btnSaveProfil');
+        sb.disabled = true; sb.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
+        fetch(window.location.href, {method:'POST', body: new FormData(this)})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+            showAlert('alertEditProfil', res.message, res.success ? 'success' : 'error');
+            if(res.success){
+                var ta = document.getElementById('topbarAvatar');
+                if(ta){
+                    if(res.foto_url){
+                        ta.innerHTML = '<img src="'+res.foto_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+                    } else {
+                        ta.textContent = res.nama.charAt(0).toUpperCase();
+                    }
+                }
+                var tn = document.getElementById('topbarNama'); if(tn) tn.textContent = res.nama;
+                document.getElementById('editNama').value  = res.nama;
+                document.getElementById('editEmail').value = res.email;
+                var nf = document.getElementById('fotoNamaFile'); if(nf) nf.style.display = 'none';
+                setTimeout(function(){ closeModal('modalEditProfil'); }, 1500);
+            }
+        })
+        .catch(function(){ showAlert('alertEditProfil','Kesalahan jaringan.','error'); })
+        .finally(function(){ sb.disabled = false; sb.innerHTML = '<i class="fas fa-save"></i> Simpan'; });
     });
 
     // UBAH PASSWORD
     document.getElementById('formUbahPassword').addEventListener('submit', function(e){
-        e.preventDefault(); var np=document.getElementById('newPass').value, cp=document.getElementById('confPass').value;
+        e.preventDefault();
+        var np=document.getElementById('newPass').value, cp=document.getElementById('confPass').value;
         if(np!==cp){ showAlert('alertUbahPassword','Konfirmasi password tidak cocok.','error'); return; }
         var sb=document.getElementById('btnSavePassword'); sb.disabled=true; sb.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
         fetch(window.location.href,{method:'POST',body:new FormData(this)}).then(r=>r.json()).then(res=>{
@@ -786,8 +804,6 @@ document.addEventListener('DOMContentLoaded', function(){
     var catLabels = <?php echo json_encode(array_column($cat_data,'nama_kategori')); ?>;
     var catValues = <?php echo json_encode(array_column($cat_data,'jumlah')); ?>;
     var shortLabels = catLabels.map(l => l.length > 13 ? l.substring(0,11)+'…' : l);
-    var isLight = document.documentElement.getAttribute('data-theme')==='light';
-
     new Chart(barCtx, {
         type: 'bar',
         data: {
