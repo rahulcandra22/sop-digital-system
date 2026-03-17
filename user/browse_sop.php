@@ -91,6 +91,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
     <title>Daftar SOP - SOP Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/page-transition.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -505,6 +506,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
 </div>
 
 <script src="../assets/js/script.js"></script>
+<script src="../assets/js/page-transition.js"></script>
 <script>
 (function(){if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light');})();
 document.addEventListener('DOMContentLoaded',function(){
