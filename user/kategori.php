@@ -156,7 +156,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
         .cat-btn-cta:hover{background:#3b82f6;color:#fff;}
     </style>
 </head>
-<body>
+<body class="dashboard-page">
 <div class="dashboard-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">

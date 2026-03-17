@@ -300,7 +300,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
         .mf-btn-save:disabled { opacity:.65; cursor:not-allowed; transform:none; }
     </style>
 </head>
-<body>
+<body class="dashboard-page">
 <div class="dashboard-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">

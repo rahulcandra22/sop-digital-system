@@ -363,7 +363,7 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
         @media(max-width:900px){.two-col{grid-template-columns:1fr;}.status-grid{grid-template-columns:repeat(2,1fr);}.quick-actions-grid{grid-template-columns:1fr;}}
     </style>
 </head>
-<body>
+<body class="dashboard-page">
 <div class="dashboard-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">

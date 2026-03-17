@@ -250,7 +250,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
         .form-actions{display:flex;gap:10px;}
     </style>
 </head>
-<body>
+<body class="dashboard-page">
 <div class="dashboard-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">

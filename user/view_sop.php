@@ -184,7 +184,7 @@ $cur_init  = strtoupper(substr($cur_nama, 0, 1));
         .section-box pre{font-family:'Outfit',sans-serif;white-space:pre-wrap;margin:0;line-height:1.6;font-size:15px;color:var(--tsub);}
     </style>
 </head>
-<body>
+<body class="dashboard-page">
 <div class="dashboard-wrapper">
     <aside class="sidebar">
         <div class="sidebar-header">

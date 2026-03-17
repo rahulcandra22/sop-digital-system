@@ -110,7 +110,7 @@ $flash = getFlashMessage();
         .catatan-revisi { background: var(--lbg); border: 1px solid var(--lbor); color: var(--lc); padding: 15px; border-radius: 12px; margin-bottom: 25px; }
     </style>
 </head>
-<body>
+<body class="dashboard-page">
     <div class="dashboard-wrapper">
         <aside class="sidebar">
             <div class="sidebar-header">
