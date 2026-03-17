@@ -555,30 +555,32 @@ $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '�
             <input type="hidden" name="action" value="update_profile">
             <div class="modal-body">
 
-<!-- FOTO PROFIL -->
-<div class="mf-group">
-    <label>Foto Profil</label>
-    <div style="display:flex;align-items:center;gap:16px;">
-        <!-- Avatar Preview -->
-        <label for="inputFoto" style="cursor:pointer;flex-shrink:0;">
-            <div id="fotoPreview" style="width:80px;height:80px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;overflow:hidden;border:2px solid rgba(59,130,246,.4);transition:.3s;position:relative;">
-                <?php if ($cur_foto_url): ?>
-                    <img src="<?php echo $cur_foto_url; ?>" style="width:100%;height:100%;object-fit:cover;">
-                <?php else: ?>
-                    <?php echo $cur_init; ?>
-                <?php endif; ?>
-            </div>
-        </label>
-        <!-- Info & Tombol -->
-        <div style="flex:1;">
-            <div style="font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;">Ganti Foto</div>
-            <div style="font-size:11.5px;color:var(--tmut);margin-bottom:10px;line-height:1.5;">JPG, PNG, atau WEBP · Maks. 2MB<br>Klik foto untuk memilih gambar</div>
-            <label for="inputFoto" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--togbg);border:1px solid var(--gb);border-radius:8px;color:var(--tm);font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Outfit',sans-serif;">
-                <i class="fas fa-image" style="color:#60a5fa"></i> Pilih Foto
-            </label>
-            <input type="file" name="foto_profil" id="inputFoto" accept="image/jpeg,image/png,image/webp" style="display:none;">
-        </div>
-    </div>
+                <!-- FOTO PROFIL -->
+                <div class="mf-group">
+                    <label>Foto Profil</label>
+                    <div style="display:flex;align-items:center;gap:16px;">
+                        <label for="inputFoto" style="cursor:pointer;flex-shrink:0;">
+                            <div id="fotoPreview" style="width:80px;height:80px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;overflow:hidden;border:2px solid rgba(59,130,246,.4);transition:.3s;">
+                                <?php if ($cur_foto_url): ?>
+                                    <img src="<?php echo $cur_foto_url; ?>" style="width:100%;height:100%;object-fit:cover;">
+                                <?php else: ?>
+                                    <?php echo $cur_init; ?>
+                                <?php endif; ?>
+                            </div>
+                        </label>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;">Ganti Foto</div>
+                            <div style="font-size:11.5px;color:var(--tmut);margin-bottom:10px;line-height:1.5;">JPG, PNG, atau WEBP · Maks. 2MB<br>Klik foto untuk memilih gambar</div>
+                            <label for="inputFoto" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--togbg);border:1px solid var(--gb);border-radius:8px;color:var(--tm);font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Outfit',sans-serif;">
+                                <i class="fas fa-image" style="color:#60a5fa"></i> Pilih Foto
+                            </label>
+                            <input type="file" name="foto_profil" id="inputFoto" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                        </div>
+                    </div>
+                    <div id="fotoNamaFile" style="display:none;margin-top:6px;font-size:11.5px;color:#34d399;align-items:center;gap:6px;">
+                        <i class="fas fa-check-circle"></i><span></span>
+                    </div>
+                </div>
 
                 <!-- NAMA -->
                 <div class="mf-group">
