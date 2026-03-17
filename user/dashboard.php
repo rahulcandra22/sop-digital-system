@@ -68,7 +68,7 @@ $cur_email = $_SESSION['email'] ?? '';
 $cur_init  = strtoupper(substr($cur_nama, 0, 1));
 
 $hour = (int)date('H');
-$greeting      = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang!' : ($hour < 20 ? 'Selamat Sore!' : 'Selamat Malam!S'));
+$greeting      = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : ($hour < 20 ? 'Selamat Sore' : 'Selamat Malam'));
 $greeting_icon = $hour < 12 ? '🌅' : ($hour < 17 ? '☀️' : ($hour < 20 ? '🌇' : '🌙'));
 ?>
 <!DOCTYPE html>
