@@ -596,7 +596,7 @@ $cur_foto_url = $cur_foto ? '../assets/uploads/foto_profil/'.$cur_foto : null;
                         </label>
                         <div style="flex:1;">
                             <div style="font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;">Ganti Foto</div>
-                            <div style="font-size:11px;color:var(--tmut);margin-bottom:10px;line-height:1.5;">JPG, PNG, WEBP · Maks. 2MB<br>Klik foto untuk memilih gambar</div>
+                            <div style="font-size:11px;color:var(--tmut);margin-bottom:10px;line-height:1.5;">Format file berbentuk JPG, PNG, WEBP<br>Klik foto untuk memilih gambar (max. 2MB)</div>
                             <label for="inputFoto" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:8px;color:#60a5fa;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Outfit',sans-serif;">
                                 <i class="fas fa-image"></i> Pilih Foto
                             </label>
