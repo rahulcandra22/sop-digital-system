@@ -286,6 +286,32 @@ $cur_foto_url = $cur_foto ? '../assets/uploads/foto_profil/'.$cur_foto : null;
         .confirm-box .confirm-text{font-size:12px;color:#fca5a5;line-height:1.6;}
         .confirm-box .confirm-text strong{color:#f87171;}
         .form-actions{display:flex;gap:8px;}
+    
+        /* NUCLEAR FIX */
+        html, body { height: auto !important; min-height: 0 !important; }
+        .dashboard-wrapper {
+        display: flex !important;
+        min-height: 100vh !important;
+        max-height: none !important;
+        align-items: stretch !important;
+        }
+        .sidebar {
+        width: 260px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        height: 100vh !important;
+        overflow-y: auto !important;
+        margin-left: 0 !important;
+        }
+        .main-content {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        min-height: unset !important;
+        height: auto !important;
+        margin-left: 0 !important;
+        background: transparent !important;
+        }
     </style>
 </head>
 <body class="dashboard-page">

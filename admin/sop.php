@@ -327,6 +327,32 @@ $cur_foto_url = $cur_foto ? '../assets/uploads/foto_profil/'.$cur_foto : null;
         .info-block{background:var(--ibg)!important;border:1px solid var(--gb);border-radius:8px;padding:14px;margin:14px 0;}
         .file-block{background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:12px 14px;margin-top:14px;}
         .form-actions{display:flex;gap:10px;}
+    
+        /* NUCLEAR FIX */
+        html, body { height: auto !important; min-height: 0 !important; }
+        .dashboard-wrapper {
+        display: flex !important;
+        min-height: 100vh !important;
+        max-height: none !important;
+        align-items: stretch !important;
+        }
+        .sidebar {
+        width: 260px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        height: 100vh !important;
+        overflow-y: auto !important;
+        margin-left: 0 !important;
+        }
+        .main-content {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        min-height: unset !important;
+        height: auto !important;
+        margin-left: 0 !important;
+        background: transparent !important;
+        }
     </style>
 </head>
 <body class="dashboard-page">
